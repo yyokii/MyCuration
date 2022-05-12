@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "now-build": "yum install libuuid-devel libmount-devel && cp canvas_lib64/*so.1 node_modules/canvas/build/Release/ && yarn build",
+    "now-build": "yum install libuuid-devel libmount-devel zlib-devel && cp /canvas_lib64/*so.1 node_modules/canvas/build/Release/ && yarn build",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
