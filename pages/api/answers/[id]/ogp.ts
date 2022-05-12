@@ -19,7 +19,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     .get()
   const question = questionDoc.data() as Question
 
-
   const width = 600
   const height = 315
 
