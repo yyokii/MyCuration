@@ -3,7 +3,7 @@ import TwitterShareButton from '../../components/TwitterShareButton'
 import { useAuthentication } from '../../hooks/authentication'
 
 export default function UsersMe() {
-  const { user } = useAuthentication()
+  const user = useAuthentication()
 
   if (user === null) {
     return (

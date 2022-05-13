@@ -55,7 +55,7 @@ export function useAuthentication() {
         })
     }, [])
 
-    return { user }
+    return user
 }
 
 async function createUserIfNotFound(user: User) {

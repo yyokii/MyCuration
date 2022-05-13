@@ -19,9 +19,10 @@ type Query = {
 }
 
 export default function UserShow() {
-    const [user, setUser] = useState<User>(null)
-    const { user: currentUser } = useAuthentication()
+    const currentUser = useAuthentication()
 
+    // State
+    const [user, setUser] = useState<User>(null)
     const [body, setBody] = useState('')
     const [isSending, setIsSending] = useState(false)
 
@@ -50,22 +51,22 @@ export default function UserShow() {
         }
     }, [query.uid])
 
-    async function onSubmit(e: FormEvent<HTMLFormElement>) {
+    async function onSubmitItem(e: FormEvent<HTMLFormElement>) {
         e.preventDefault()
 
         const db = getFirestore()
 
         setIsSending(true)
-        await addDoc(collection(db, 'questions'), {
-            senderUid: currentUser.uid,
-            receiverUid: user.uid,
-            body,
-            isReplied: false,
+        await addDoc(collection(db, `users/${currentUser.uid}/items`) , {
+            category: '',
+            comment: '',
+            contentURL: body,
             createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
         })
         setIsSending(false)
         setBody('')
-        toast.success('送信しました。', {
+        toast.success('追加しました。', {
             position: 'bottom-left',
             autoClose: 5000,
             hideProgressBar: false,
@@ -85,9 +86,12 @@ export default function UserShow() {
                         <div className="col-12 col-md-6">
                             <div>
                                 {user.uid === currentUser.uid ? (
-                                    <div>自分には送信できません。</div>
-                                ) : (
-                                    <form onSubmit={onSubmit}>
+                                    /**
+                                     * 自分のページ
+                                     * 
+                                     * 投稿内容閲覧、追加、編集、削除が可能であるページ
+                                     */
+                                    <form onSubmit={onSubmitItem}>
                                         <textarea
                                             className="form-control"
                                             placeholder="アイテム"
@@ -103,21 +107,19 @@ export default function UserShow() {
                                                 </div>
                                             ) : (
                                                 <button type="submit" className="btn btn-primary">
-                                                    送信する
+                                                    追加する
                                                 </button>
                                             )}
                                         </div>
                                     </form>
+                                ) : (
+                                    /**
+                                     * 他のアカウントのページ
+                                     * 
+                                     * 投稿内容閲覧が可能であるページ
+                                     */
+                                    <div>（仮）他の人のページです</div>
                                 )}
-                                <div>
-                                    {user && (
-                                        <p>
-                                            <Link href="/users/me">
-                                                <a className="btn btn-link">自分もみんなに質問してもらおう！</a>
-                                            </Link>
-                                        </p>
-                                    )}
-                                </div>
                             </div>
                         </div>
                     </div>
