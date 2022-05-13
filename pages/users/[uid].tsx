@@ -12,6 +12,7 @@ import {
 import Layout from '../../components/Layout'
 import { useAuthentication } from '../../hooks/authentication'
 import { toast } from 'react-toastify';
+import Link from 'next/link'
 
 type Query = {
     uid: string
@@ -108,6 +109,15 @@ export default function UserShow() {
                                         </div>
                                     </form>
                                 )}
+                                <div>
+                                    {user && (
+                                        <p>
+                                            <Link href="/users/me">
+                                                <a className="btn btn-link">自分もみんなに質問してもらおう！</a>
+                                            </Link>
+                                        </p>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
