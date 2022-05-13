@@ -106,7 +106,7 @@ export default function QuestionsShow() {
 
         const now = new Date().getTime()
         setAnswer({
-            id: '',
+            id: answerRef.id,
             uid: user.uid,
             questionId: question.id,
             body,
