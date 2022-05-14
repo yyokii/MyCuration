@@ -28,8 +28,6 @@ export function useAuthentication() {
 
         const auth = getAuth()
 
-        console.log('Start useEffect')
-
         signInAnonymously(auth).catch(function (error) {
             // Handle Errors here.
             console.error(error)
@@ -45,7 +43,6 @@ export function useAuthentication() {
                     isAnonymous: firebaseUser.isAnonymous,
                     name: '',
                 }
-                console.log(loginUser)
                 setUser(loginUser)
                 createUserIfNotFound(loginUser)
             } else {

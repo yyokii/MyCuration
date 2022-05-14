@@ -1,6 +1,7 @@
+import { Question } from '../../models/Question'
 import { useRouter } from 'next/router'
 import { User } from '../../models/User'
-import { FormEvent, useEffect, useState } from 'react'
+import { FormEvent, useEffect, useRef, useState } from 'react'
 import {
     addDoc,
     collection,
@@ -8,11 +9,22 @@ import {
     getDoc,
     getFirestore,
     serverTimestamp,
+    DocumentData,
+    getDocs,
+    limit,
+    orderBy,
+    query,
+    QuerySnapshot,
+    startAfter,
+    where,
+    onSnapshot,
 } from 'firebase/firestore'
 import Layout from '../../components/Layout'
 import { useAuthentication } from '../../hooks/authentication'
 import { toast } from 'react-toastify';
 import Link from 'next/link'
+import dayjs from 'dayjs'
+import { Article } from '../../models/Article'
 
 type Query = {
     uid: string
@@ -25,20 +37,26 @@ export default function UserShow() {
     const [user, setUser] = useState<User>(null)
     const [body, setBody] = useState('')
     const [isSending, setIsSending] = useState(false)
+    const [articles, setArticles] = useState<Article[]>([])
+    const [isPaginationFinished, setIsPaginationFinished] = useState(false)
 
+    const scrollContainerRef = useRef(null)
     const router = useRouter()
-    const query = router.query as Query
+    const queryPath = router.query as Query
+
+    // Effect
 
     useEffect(() => {
-        if (query.uid === undefined) {
+        if (queryPath.uid === undefined) {
             return
         }
 
         loadUser()
+        loadArticles()
 
         async function loadUser() {
             const db = getFirestore()
-            const ref = doc(collection(db, 'users'), query.uid)
+            const ref = doc(collection(db, 'users'), queryPath.uid)
             const userDoc = await getDoc(ref)
 
             if (!userDoc.exists()) {
@@ -49,7 +67,67 @@ export default function UserShow() {
             gotUser.uid = userDoc.id
             setUser(gotUser)
         }
-    }, [query.uid])
+    }, [queryPath.uid])
+
+    useEffect(() => {
+        window.addEventListener('scroll', onScroll)
+        return () => {
+            window.removeEventListener('scroll', onScroll)
+        }
+    }, [articles, scrollContainerRef.current, isPaginationFinished])
+
+    async function loadArticles(isReload: boolean = false) {
+        const snapshot = await getDocs(createArticlesBaseQuery())
+
+        if (snapshot.empty) {
+            setIsPaginationFinished(true)
+            return
+        }
+
+        appendArticles(snapshot, isReload)
+    }
+
+    async function loadNextArticles() {
+        if (articles.length === 0) {
+            return
+        }
+
+        const lastQuestion = articles[articles.length - 1]
+        const snapshot = await getDocs(
+            query(createArticlesBaseQuery(), startAfter(lastQuestion.createdAt))
+        )
+
+        if (snapshot.empty) {
+            return
+        }
+
+        appendArticles(snapshot)
+    }
+
+    function appendArticles(snapshot: QuerySnapshot<DocumentData>, isReload: boolean = false) {
+        const fetchedArticles = snapshot.docs.map((doc) => {
+            const article = doc.data() as Article
+            article.id = doc.id
+            return article
+        })
+
+        if (isReload) {
+            setArticles(fetchedArticles)
+        } else {
+            setArticles(articles.concat(fetchedArticles))
+        }
+    }
+
+    function createArticlesBaseQuery() {
+        const db = getFirestore()
+        return query(
+            collection(db, `users/${queryPath.uid}/articles`),
+            orderBy('createdAt', 'desc'),
+            limit(20),
+        )
+    }
+
+    // Actions
 
     async function onSubmitItem(e: FormEvent<HTMLFormElement>) {
         e.preventDefault()
@@ -57,7 +135,7 @@ export default function UserShow() {
         const db = getFirestore()
 
         setIsSending(true)
-        await addDoc(collection(db, `users/${currentUser.uid}/items`) , {
+        await addDoc(collection(db, `users/${currentUser.uid}/articles`), {
             category: '',
             comment: '',
             contentURL: body,
@@ -75,6 +153,26 @@ export default function UserShow() {
             draggable: true,
             progress: undefined,
         })
+
+        loadArticles(true)
+    }
+
+    function onScroll() {
+        if (isPaginationFinished) {
+            return
+        }
+
+        const container = scrollContainerRef.current
+        if (container === null) {
+            return
+        }
+
+        const rect = container.getBoundingClientRect()
+        if (rect.top + rect.height > window.innerHeight) {
+            return
+        }
+
+        loadNextArticles()
     }
 
     return (
@@ -120,6 +218,23 @@ export default function UserShow() {
                                      */
                                     <div>（仮）他の人のページです</div>
                                 )}
+                            </div>
+                            <div className="col-12 col-md-6" ref={scrollContainerRef}>
+                                {articles.map((article) => (
+                                    // FIXME: questionへのリンクではなくなる
+                                    <Link href={`/questions/${article.id}`} key={article.id}>
+                                        <a>
+                                            <div className="card my-3" key={article.id}>
+                                                <div className="card-body">
+                                                    <div className="text-truncate">{article.contentURL}</div>
+                                                </div>
+                                                <div className="text-muted text-end">
+                                                    <small>{dayjs(article.createdAt.toDate()).format('YYYY/MM/DD HH:mm')}</small>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </Link>
+                                ))}
                             </div>
                         </div>
                     </div>
