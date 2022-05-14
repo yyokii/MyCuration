@@ -29,8 +29,8 @@ export default async function loadOGPdata(req: NextApiRequest, res: NextApiRespo
         const html = res.data
         const dom = new JSDOM(html)
         const meta = dom.window.document.head.querySelectorAll("meta")
-        const ogp = extractOgp(Array.from(meta))
-        ogp[targetUrl] = ogp
+        const ogpData = extractOgp(Array.from(meta))
+        ogp[targetUrl] = ogpData
     } catch (error) {
         console.error(error)
         sendErrorResponse(res, error)
