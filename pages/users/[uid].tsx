@@ -18,6 +18,7 @@ import {
     startAfter,
     where,
     onSnapshot,
+    deleteDoc,
 } from 'firebase/firestore'
 import Layout from '../../components/Layout'
 import { useAuthentication } from '../../hooks/authentication'
@@ -175,6 +176,13 @@ export default function UserShow() {
         loadNextArticles()
     }
 
+    async function deleteArticle(article: Article) {
+        const db = getFirestore()
+        await deleteDoc(doc(db, `users/${currentUser.uid}/articles`, article.id));
+
+        loadArticles(true)
+    }
+
     return (
         <Layout>
             {user && currentUser && (
@@ -219,21 +227,26 @@ export default function UserShow() {
                                     <div>（仮）他の人のページです</div>
                                 )}
                             </div>
-                            <div className="col-12 col-md-6" ref={scrollContainerRef}>
+                            <div className="col-12" ref={scrollContainerRef}>
                                 {articles.map((article) => (
                                     // FIXME: questionへのリンクではなくなる
-                                    <Link href={`/questions/${article.id}`} key={article.id}>
-                                        <a>
-                                            <div className="card my-3" key={article.id}>
-                                                <div className="card-body">
-                                                    <div className="text-truncate">{article.contentURL}</div>
-                                                </div>
-                                                <div className="text-muted text-end">
-                                                    <small>{dayjs(article.createdAt.toDate()).format('YYYY/MM/DD HH:mm')}</small>
-                                                </div>
+                                    <div key={article.id}>
+                                        <div className="card my-3" key={article.id}>
+                                            <div className="m-1 text-end" onClick={(e) => deleteArticle(article)}>
+                                                <i className="material-icons">delete</i>
                                             </div>
-                                        </a>
-                                    </Link>
+                                            <Link href={`/questions/${article.id}`}>
+                                                <a>
+                                                    <div className="card-body">
+                                                        <div className="text-truncate">{article.contentURL}</div>
+                                                    </div>
+                                                    <div className="text-muted text-end">
+                                                        <small>{dayjs(article.createdAt.toDate()).format('YYYY/MM/DD HH:mm')}</small>
+                                                    </div>
+                                                </a>
+                                            </Link>
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         </div>
