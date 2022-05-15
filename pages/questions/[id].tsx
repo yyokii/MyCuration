@@ -25,7 +25,7 @@ type Query = {
 export default function QuestionsShow() {
     const router = useRouter()
     const routerQuery = router.query as Query
-    const { user } = useAuthentication()
+    const user = useAuthentication()
     const [body, setBody] = useState('')
     const [isSending, setIsSending] = useState(false)
     const [question, setQuestion] = useState<Question>(null)
