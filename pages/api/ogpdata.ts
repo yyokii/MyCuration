@@ -7,9 +7,6 @@ import { JSDOM } from 'jsdom'
  * 次のようなリクエストがあった際にレスポンスとしてメタ情報を返却する
  * https://aaa.bbb.ccc/api/loadOGPData?url=https://zenn.dev
  * 
- * todo:
- * ogpは更新頻度は1月以上に1回ぐらいなので、キャッシュしたい
- * vercelにデプロイするのでヘッダー変えておけばよしなにやってくれそう
  * https://vercel.com/docs/concepts/functions/serverless-functions
  */
 export default async function loadOGPdata(req: NextApiRequest, res: NextApiResponse) {
@@ -35,6 +32,8 @@ export default async function loadOGPdata(req: NextApiRequest, res: NextApiRespo
         console.error(error)
         sendErrorResponse(res, error)
     }
+
+    res.setHeader('Cache-Control', 's-maxage=2592000')
     res.status(200).json(ogp)
 }
 
