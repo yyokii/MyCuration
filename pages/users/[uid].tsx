@@ -1,6 +1,7 @@
+import { Question } from '../../models/Question'
 import { useRouter } from 'next/router'
 import { User } from '../../models/User'
-import { FormEvent, useEffect, useState } from 'react'
+import { FormEvent, useEffect, useRef, useState } from 'react'
 import {
     addDoc,
     collection,
@@ -8,36 +9,55 @@ import {
     getDoc,
     getFirestore,
     serverTimestamp,
+    DocumentData,
+    getDocs,
+    limit,
+    orderBy,
+    query,
+    QuerySnapshot,
+    startAfter,
+    where,
+    onSnapshot,
+    deleteDoc,
 } from 'firebase/firestore'
 import Layout from '../../components/Layout'
 import { useAuthentication } from '../../hooks/authentication'
 import { toast } from 'react-toastify';
 import Link from 'next/link'
+import dayjs from 'dayjs'
+import { Article } from '../../models/Article'
 
 type Query = {
     uid: string
 }
 
 export default function UserShow() {
-    const [user, setUser] = useState<User>(null)
-    const { user: currentUser } = useAuthentication()
+    const currentUser = useAuthentication()
 
+    // State
+    const [user, setUser] = useState<User>(null)
     const [body, setBody] = useState('')
     const [isSending, setIsSending] = useState(false)
+    const [articles, setArticles] = useState<Article[]>([])
+    const [isPaginationFinished, setIsPaginationFinished] = useState(false)
 
+    const scrollContainerRef = useRef(null)
     const router = useRouter()
-    const query = router.query as Query
+    const queryPath = router.query as Query
+
+    // Effect
 
     useEffect(() => {
-        if (query.uid === undefined) {
+        if (queryPath.uid === undefined) {
             return
         }
 
         loadUser()
+        loadArticles()
 
         async function loadUser() {
             const db = getFirestore()
-            const ref = doc(collection(db, 'users'), query.uid)
+            const ref = doc(collection(db, 'users'), queryPath.uid)
             const userDoc = await getDoc(ref)
 
             if (!userDoc.exists()) {
@@ -48,24 +68,84 @@ export default function UserShow() {
             gotUser.uid = userDoc.id
             setUser(gotUser)
         }
-    }, [query.uid])
+    }, [queryPath.uid])
 
-    async function onSubmit(e: FormEvent<HTMLFormElement>) {
+    useEffect(() => {
+        window.addEventListener('scroll', onScroll)
+        return () => {
+            window.removeEventListener('scroll', onScroll)
+        }
+    }, [articles, scrollContainerRef.current, isPaginationFinished])
+
+    async function loadArticles(isReload: boolean = false) {
+        const snapshot = await getDocs(createArticlesBaseQuery())
+
+        if (snapshot.empty) {
+            setIsPaginationFinished(true)
+            return
+        }
+
+        appendArticles(snapshot, isReload)
+    }
+
+    async function loadNextArticles() {
+        if (articles.length === 0) {
+            return
+        }
+
+        const lastQuestion = articles[articles.length - 1]
+        const snapshot = await getDocs(
+            query(createArticlesBaseQuery(), startAfter(lastQuestion.createdAt))
+        )
+
+        if (snapshot.empty) {
+            return
+        }
+
+        appendArticles(snapshot)
+    }
+
+    function appendArticles(snapshot: QuerySnapshot<DocumentData>, isReload: boolean = false) {
+        const fetchedArticles = snapshot.docs.map((doc) => {
+            const article = doc.data() as Article
+            article.id = doc.id
+            return article
+        })
+
+        if (isReload) {
+            setArticles(fetchedArticles)
+        } else {
+            setArticles(articles.concat(fetchedArticles))
+        }
+    }
+
+    function createArticlesBaseQuery() {
+        const db = getFirestore()
+        return query(
+            collection(db, `users/${queryPath.uid}/articles`),
+            orderBy('createdAt', 'desc'),
+            limit(20),
+        )
+    }
+
+    // Actions
+
+    async function onSubmitItem(e: FormEvent<HTMLFormElement>) {
         e.preventDefault()
 
         const db = getFirestore()
 
         setIsSending(true)
-        await addDoc(collection(db, 'questions'), {
-            senderUid: currentUser.uid,
-            receiverUid: user.uid,
-            body,
-            isReplied: false,
+        await addDoc(collection(db, `users/${currentUser.uid}/articles`), {
+            category: '',
+            comment: '',
+            contentURL: body,
             createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
         })
         setIsSending(false)
         setBody('')
-        toast.success('送信しました。', {
+        toast.success('追加しました。', {
             position: 'bottom-left',
             autoClose: 5000,
             hideProgressBar: false,
@@ -74,6 +154,33 @@ export default function UserShow() {
             draggable: true,
             progress: undefined,
         })
+
+        loadArticles(true)
+    }
+
+    function onScroll() {
+        if (isPaginationFinished) {
+            return
+        }
+
+        const container = scrollContainerRef.current
+        if (container === null) {
+            return
+        }
+
+        const rect = container.getBoundingClientRect()
+        if (rect.top + rect.height > window.innerHeight) {
+            return
+        }
+
+        loadNextArticles()
+    }
+
+    async function deleteArticle(article: Article) {
+        const db = getFirestore()
+        await deleteDoc(doc(db, `users/${currentUser.uid}/articles`, article.id));
+
+        loadArticles(true)
     }
 
     return (
@@ -85,9 +192,12 @@ export default function UserShow() {
                         <div className="col-12 col-md-6">
                             <div>
                                 {user.uid === currentUser.uid ? (
-                                    <div>自分には送信できません。</div>
-                                ) : (
-                                    <form onSubmit={onSubmit}>
+                                    /**
+                                     * 自分のページ
+                                     * 
+                                     * 投稿内容閲覧、追加、編集、削除が可能であるページ
+                                     */
+                                    <form onSubmit={onSubmitItem}>
                                         <textarea
                                             className="form-control"
                                             placeholder="アイテム"
@@ -103,21 +213,41 @@ export default function UserShow() {
                                                 </div>
                                             ) : (
                                                 <button type="submit" className="btn btn-primary">
-                                                    送信する
+                                                    追加する
                                                 </button>
                                             )}
                                         </div>
                                     </form>
+                                ) : (
+                                    /**
+                                     * 他のアカウントのページ
+                                     * 
+                                     * 投稿内容閲覧が可能であるページ
+                                     */
+                                    <div>（仮）他の人のページです</div>
                                 )}
-                                <div>
-                                    {user && (
-                                        <p>
-                                            <Link href="/users/me">
-                                                <a className="btn btn-link">自分もみんなに質問してもらおう！</a>
+                            </div>
+                            <div className="col-12" ref={scrollContainerRef}>
+                                {articles.map((article) => (
+                                    // FIXME: questionへのリンクではなくなる
+                                    <div key={article.id}>
+                                        <div className="card my-3" key={article.id}>
+                                            <div className="m-1 text-end" onClick={(e) => deleteArticle(article)}>
+                                                <i className="material-icons">delete</i>
+                                            </div>
+                                            <Link href={`/questions/${article.id}`}>
+                                                <a>
+                                                    <div className="card-body">
+                                                        <div className="text-truncate">{article.contentURL}</div>
+                                                    </div>
+                                                    <div className="text-muted text-end">
+                                                        <small>{dayjs(article.createdAt.toDate()).format('YYYY/MM/DD HH:mm')}</small>
+                                                    </div>
+                                                </a>
                                             </Link>
-                                        </p>
-                                    )}
-                                </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>

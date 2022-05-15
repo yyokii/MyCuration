@@ -21,7 +21,7 @@ export default function QuestionsReceived() {
     const [questions, setQuestions] = useState<Question[]>([])
     const [isPaginationFinished, setIsPaginationFinished] = useState(false)
 
-    const { user } = useAuthentication()
+    const user = useAuthentication()
     const scrollContainerRef = useRef(null)
 
     useEffect(() => {
