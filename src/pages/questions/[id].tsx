@@ -13,10 +13,10 @@ import {
   Timestamp,
   where,
 } from 'firebase/firestore'
-import Layout from '../../../components/Layout'
-import { Question } from '../../../models/Question'
+import Layout from '../../components/Layout'
+import { Question } from '../../models/Question'
 import { useAuthentication } from '../../hooks/authentication'
-import { Answer } from '../../../models/Answer'
+import { Answer } from '../../models/Answer'
 
 type Query = {
   id: string
