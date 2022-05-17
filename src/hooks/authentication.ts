@@ -26,11 +26,17 @@ export function useAuthentication() {
       if (firebaseUser) {
         console.log('Set user')
 
+        const googleProviderData = firebaseUser.providerData.filter(
+          (data) => data.providerId === 'google.com',
+        )[0]
+
         const loginUser: User = {
           uid: firebaseUser.uid,
           isAnonymous: firebaseUser.isAnonymous,
-          name: '',
+          name: googleProviderData.displayName,
+          profileImageURL: googleProviderData.photoURL,
         }
+
         setUser(loginUser)
         createUserIfNotFound(loginUser)
       } else {
