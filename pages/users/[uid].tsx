@@ -1,4 +1,3 @@
-import { Question } from '../../models/Question'
 import { useRouter } from 'next/router'
 import { User } from '../../models/User'
 import { FormEvent, useEffect, useRef, useState } from 'react'
@@ -16,8 +15,6 @@ import {
     query,
     QuerySnapshot,
     startAfter,
-    where,
-    onSnapshot,
     deleteDoc,
 } from 'firebase/firestore'
 import Layout from '../../components/Layout'
