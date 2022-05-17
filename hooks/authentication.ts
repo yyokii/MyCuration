@@ -1,4 +1,4 @@
-import { getAuth, onAuthStateChanged, signInAnonymously } from 'firebase/auth'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { User } from '../models/User'
 import { atom, useRecoilState } from 'recoil'
 import { useEffect } from 'react'
@@ -28,12 +28,6 @@ export function useAuthentication() {
 
         const auth = getAuth()
 
-        signInAnonymously(auth).catch(function (error) {
-            // Handle Errors here.
-            console.error(error)
-            // ...
-        })
-
         onAuthStateChanged(auth, function (firebaseUser) {
             if (firebaseUser) {
                 console.log('Set user')
@@ -46,7 +40,7 @@ export function useAuthentication() {
                 setUser(loginUser)
                 createUserIfNotFound(loginUser)
             } else {
-                // User is signed out.
+                console.log('User is signed out')
                 setUser(null)
             }
         })

@@ -1,9 +1,11 @@
-import { initializeApp, getApps } from 'firebase/app'
+import { initializeApp, getApps, FirebaseApp } from 'firebase/app'
 import { getAnalytics } from 'firebase/analytics'
 
 import 'firebase/analytics'
 import 'firebase/auth'
 import 'firebase/firestore'
+
+var firebaseApp: FirebaseApp
 
 if (typeof window !== 'undefined' && getApps().length === 0) {
   // サーバーサイドでの処理でない、かつ初期化済みでない場合に実行
@@ -17,6 +19,8 @@ if (typeof window !== 'undefined' && getApps().length === 0) {
     measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
   }
 
-  initializeApp(firebaseConfig)
+  firebaseApp = initializeApp(firebaseConfig)
   getAnalytics()
 }
+
+export const app = firebaseApp
