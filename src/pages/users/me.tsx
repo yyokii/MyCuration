@@ -17,15 +17,12 @@ export default function UsersMe() {
 
   return (
     <Layout>
-      <section className="text-center">
-        <h1 className="h4">自分のページ</h1>
-        <p className="user-select-all overflow-auto">{url}</p>
+      <section className='text-center'>
+        <h1 className='h4'>自分のページ</h1>
+        <p className='user-select-all overflow-auto'>{url}</p>
         <p>このURLをシェアしてみんなに質問してもらおう！</p>
-        <div className="d-flex justify-content-center">
-          <TwitterShareButton
-            url={url}
-            text="質問してね！"
-          ></TwitterShareButton>
+        <div className='d-flex justify-content-center'>
+          <TwitterShareButton url={url} text='質問してね！'></TwitterShareButton>
         </div>
       </section>
     </Layout>
