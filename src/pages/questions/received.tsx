@@ -1,5 +1,5 @@
-import { Question } from '../../models/Question'
-import Layout from '../../components/Layout'
+import { Question } from '../../../models/Question'
+import Layout from '../../../components/Layout'
 import { useEffect, useRef, useState } from 'react'
 import {
     collection,

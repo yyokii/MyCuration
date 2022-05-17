@@ -1,4 +1,4 @@
-import Layout from '../components/Layout'
+import Layout from '../../components/Layout'
 import { login, logout } from "../lib/firebase-auth";
 
 export default function Signup() {
