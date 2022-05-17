@@ -1,6 +1,7 @@
 import Layout from '../../components/Layout'
 import TwitterShareButton from '../../components/TwitterShareButton'
 import { useAuthentication } from '../../hooks/authentication'
+import Image from 'next/image'
 
 export default function UsersMe() {
   const user = useAuthentication()
@@ -18,7 +19,8 @@ export default function UsersMe() {
   return (
     <Layout>
       <section className='text-center'>
-        <h1 className='h4'>自分のページ</h1>
+        <Image src={user.profileImageURL} width={100} height={100} alt='display name' />
+        <h1 className='h4'>{user.name}のページ</h1>
         <p className='user-select-all overflow-auto'>{url}</p>
         <p>このURLをシェアしてみんなに質問してもらおう！</p>
         <div className='d-flex justify-content-center'>
