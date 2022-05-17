@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import '../../../../lib/firebase_admin'
 import { firestore } from 'firebase-admin'
-import { Answer } from '../../../../../models/Answer'
-import { Question } from '../../../../../models/Question'
+import { Answer } from '../../../../models/Answer'
+import { Question } from '../../../../models/Question'
 
 type Data = {
   answer: Answer
