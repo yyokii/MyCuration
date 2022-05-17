@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { User } from '../../models/User'
+import { User } from '../../../models/User'
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import {
     addDoc,
@@ -17,12 +17,12 @@ import {
     startAfter,
     deleteDoc,
 } from 'firebase/firestore'
-import Layout from '../../components/Layout'
+import Layout from '../../../components/Layout'
 import { useAuthentication } from '../../hooks/authentication'
 import { toast } from 'react-toastify';
 import Link from 'next/link'
 import dayjs from 'dayjs'
-import { Article } from '../../models/Article'
+import { Article } from '../../../models/Article'
 
 type Query = {
     uid: string
