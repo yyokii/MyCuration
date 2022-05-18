@@ -1,4 +1,4 @@
-import { Question } from '../../models/Question'
+import { Question } from '../../types/Question'
 import Layout from '../../components/Layout'
 import { useEffect, useRef, useState } from 'react'
 import {

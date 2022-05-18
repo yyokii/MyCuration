@@ -14,9 +14,9 @@ import {
   where,
 } from 'firebase/firestore'
 import Layout from '../../components/Layout'
-import { Question } from '../../models/Question'
+import { Question } from '../../types/Question'
 import { useAuthentication } from '../../hooks/authentication'
-import { Answer } from '../../models/Answer'
+import { Answer } from '../../types/Answer'
 
 type Query = {
   id: string
