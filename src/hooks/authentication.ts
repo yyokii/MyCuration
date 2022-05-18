@@ -1,5 +1,5 @@
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
-import { User } from '../models/User'
+import { User } from '../types/User'
 import { atom, useRecoilState } from 'recoil'
 import { useEffect } from 'react'
 import { getFirestore, collection, doc, getDoc, setDoc } from 'firebase/firestore'

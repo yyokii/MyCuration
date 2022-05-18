@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { User } from '../../models/User'
+import { User } from '../../types/User'
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import {
   addDoc,
@@ -22,7 +22,7 @@ import { useAuthentication } from '../../hooks/authentication'
 import { toast } from 'react-toastify'
 import Link from 'next/link'
 import dayjs from 'dayjs'
-import { Article } from '../../models/Article'
+import { Article } from '../../types/Article'
 
 type Query = {
   uid: string

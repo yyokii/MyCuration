@@ -1,6 +1,6 @@
 import Layout from '../../../components/Layout'
-import { Answer } from '../../../models/Answer'
-import { Question } from '../../../models/Question'
+import { Answer } from '../../../types/Answer'
+import { Question } from '../../../types/Question'
 
 type Props = {
   answer: Answer
