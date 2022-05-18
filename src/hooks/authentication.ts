@@ -4,12 +4,21 @@ import { atom, useRecoilState } from 'recoil'
 import { useEffect } from 'react'
 import { getFirestore, collection, doc, getDoc, setDoc } from 'firebase/firestore'
 
-// null: 未ログイン状態
+/**
+ * Userがnull: 未ログインユーザー
+ * UserのisFinishedRegisterUserInfoの値がfalse: ユーザー情報登録がまだ完了していない
+ * UserのisFinishedRegisterUserInfoの値がtrue: ユーザー情報登録が完了している
+ */
 const userState = atom<User>({
   key: 'user',
   default: null,
 })
 
+/**
+ * ログイン中のユーザー情報を取得する
+ *
+ * @returns {User} ログイン中のユーザー情報
+ */
 export function useAuthentication() {
   const [user, setUser] = useRecoilState(userState)
 
@@ -22,7 +31,7 @@ export function useAuthentication() {
 
     const auth = getAuth()
 
-    onAuthStateChanged(auth, function (firebaseUser) {
+    onAuthStateChanged(auth, async function (firebaseUser) {
       if (firebaseUser) {
         console.log('Set user')
 
@@ -30,9 +39,12 @@ export function useAuthentication() {
           (data) => data.providerId === 'google.com',
         )[0]
 
+        // 且つ、usersコレクションにも存在しているか確認
+        const isRegisterd = await checkIfRegistered(firebaseUser.uid)
+
         const loginUser: User = {
           uid: firebaseUser.uid,
-          isAnonymous: firebaseUser.isAnonymous,
+          isFinishedRegisterUserInfo: isRegisterd,
           name: googleProviderData.displayName,
           profileImageURL: googleProviderData.photoURL,
         }
@@ -40,7 +52,7 @@ export function useAuthentication() {
         setUser(loginUser)
         createUserIfNotFound(loginUser)
       } else {
-        console.log('User is signed out')
+        console.log('User is not signed in')
         setUser(null)
       }
     })
@@ -61,4 +73,18 @@ async function createUserIfNotFound(user: User) {
   await setDoc(userRef, {
     name: new Date().getTime(),
   })
+}
+
+async function checkIfRegistered(uid: string) {
+  const db = getFirestore()
+  const userDocRef = doc(db, 'users', uid)
+  const snapshot = await getDoc(userDocRef)
+
+  if (snapshot.exists()) {
+    console.log('ユーザー情報登録済みのユーザーです')
+    return true
+  } else {
+    console.log('ユーザー情報登録がまだ登録されていません')
+    return false
+  }
 }
