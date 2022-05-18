@@ -1,6 +1,6 @@
 export interface User {
   uid: string
-  isAnonymous: boolean
+  isFinishedRegisterUserInfo: boolean
   name: string
   profileImageURL: string
 }
