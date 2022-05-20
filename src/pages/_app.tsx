@@ -39,7 +39,6 @@ function AppInit() {
         }
 
         setUser(loginUser)
-        createUserIfNotFound(loginUser)
       } else {
         console.log('User is not signed in')
         setUser(null)
