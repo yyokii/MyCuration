@@ -18,7 +18,7 @@ import {
   deleteDoc,
 } from 'firebase/firestore'
 import Layout from '../../components/Layout'
-import { useAuthentication } from '../../hooks/authentication'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { toast } from 'react-toastify'
 import Link from 'next/link'
 import dayjs from 'dayjs'
@@ -29,7 +29,7 @@ type Query = {
 }
 
 export default function UserShow() {
-  const currentUser = useAuthentication()
+  const { currentUser } = useCurrentUser()
 
   // State
   const [user, setUser] = useState<User>(null)
