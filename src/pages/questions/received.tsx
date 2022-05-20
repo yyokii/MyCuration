@@ -13,7 +13,7 @@ import {
   startAfter,
   where,
 } from 'firebase/firestore'
-import { useAuthentication } from '../../hooks/authentication'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
 import dayjs from 'dayjs'
 import Link from 'next/link'
 
@@ -21,19 +21,19 @@ export default function QuestionsReceived() {
   const [questions, setQuestions] = useState<Question[]>([])
   const [isPaginationFinished, setIsPaginationFinished] = useState(false)
 
-  const user = useAuthentication()
+  const { currentUser } = useCurrentUser()
   const scrollContainerRef = useRef(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') {
       return
     }
-    if (user === null) {
+    if (currentUser === null) {
       return
     }
 
     loadQuestions()
-  }, [user])
+  }, [currentUser])
 
   useEffect(() => {
     window.addEventListener('scroll', onScroll)
@@ -90,7 +90,7 @@ export default function QuestionsReceived() {
     const db = getFirestore()
     return query(
       collection(db, 'questions'),
-      where('receiverUid', '==', user.uid),
+      where('receiverUid', '==', currentUser.uid),
       orderBy('createdAt', 'desc'),
       limit(10),
     )

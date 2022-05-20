@@ -1,7 +1,10 @@
 import Link from 'next/link'
 import Layout from '../components/Layout'
+import { useCurrentUser } from '../hooks/useCurrentUser'
 
 export default function Home() {
+  const currentUser = useCurrentUser()
+
   return (
     // TODO: サインイン、会員登録機能への導線を追加する
     <Layout>
