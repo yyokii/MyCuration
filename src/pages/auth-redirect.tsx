@@ -4,6 +4,8 @@ import { useRouter } from 'next/router'
 import * as firebaseAuth from 'firebase/auth'
 import Layout from '../components/Layout'
 
+const redirectableWhiteList = ['', 'onboarding']
+
 const AuthRedirectPage: NextPage = () => {
   const router = useRouter()
 
@@ -16,16 +18,24 @@ const AuthRedirectPage: NextPage = () => {
       const result = await firebaseAuth.getRedirectResult(firebaseAuth.getAuth())
       if (result == null) {
         // result がない時は認証前
-        // `auth/redirect-cancelled-by-user` 等のエラー検証が必要だが、ここでは省略
-        await firebaseAuth.signInWithRedirect(
-          firebaseAuth.getAuth(),
-          new firebaseAuth.GoogleAuthProvider(),
-        )
+        // `auth/redirect-cancelled-by-user` 等のエラー検証が必要
+        // https://firebase.google.com/docs/reference/js/auth#autherrorcodes
+        await firebaseAuth
+          .signInWithRedirect(firebaseAuth.getAuth(), new firebaseAuth.GoogleAuthProvider())
+          .catch((error) => {
+            console.log(error)
+            // TODO: エラーページを表示する
+          })
       } else {
         // result がある時は認証済み
-        // オープンリダイレクタ等を回避するために検証が必要だが、ここでは省略
         const redirectUri = router.query['redirect_uri'] as string | undefined
-        router.push(redirectUri || '/')
+        if (redirectableWhiteList.includes(redirectUri)) {
+          // オープンリダイレクタ回避
+          router.push(redirectUri)
+        } else {
+          // TODO: エラーページを表示する？
+          router.push(redirectUri || '/')
+        }
       }
     })()
   }, [router.isReady])

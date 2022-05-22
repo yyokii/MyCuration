@@ -9,15 +9,6 @@ import { userState } from '../states/user'
 export function useCurrentUser() {
   const currentUser = useRecoilValue(userState)
   const isAuthChecking = currentUser === undefined
-  const router = useRouter()
-
-  useEffect(() => {
-    if (currentUser?.isFinishedRegisterUserInfo === false) {
-      if (router.isReady) {
-        console.log(currentUser)
-      }
-    }
-  }, [currentUser, router])
 
   return {
     currentUser,

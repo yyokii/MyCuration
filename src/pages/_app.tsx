@@ -10,6 +10,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { collection, doc, getDoc, getFirestore, setDoc } from 'firebase/firestore'
 import { User } from '../types/User'
 import { app } from '../lib/firebase'
+import { checkIfRegistered } from '../lib/firebase-auth'
 
 // TODO: 将来必要に応じて変更する
 dayjs.locale('ja')
@@ -61,20 +62,6 @@ async function createUserIfNotFound(user: User) {
   await setDoc(userRef, {
     name: new Date().getTime(),
   })
-}
-
-async function checkIfRegistered(uid: string) {
-  const db = getFirestore()
-  const userDocRef = doc(db, 'users', uid)
-  const snapshot = await getDoc(userDocRef)
-
-  if (snapshot.exists()) {
-    console.log('ユーザー情報登録済みのユーザーです')
-    return true
-  } else {
-    console.log('ユーザー情報登録がまだ登録されていません')
-    return false
-  }
 }
 
 function MyApp({ Component, pageProps }) {
