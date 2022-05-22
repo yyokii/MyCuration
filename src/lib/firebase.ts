@@ -4,6 +4,7 @@ import { getAnalytics } from 'firebase/analytics'
 import 'firebase/analytics'
 import 'firebase/auth'
 import 'firebase/firestore'
+import { getFirestore } from 'firebase/firestore'
 
 var firebaseApp: FirebaseApp
 
@@ -26,3 +27,4 @@ if (getApps().length === 0) {
 }
 
 export const app = firebaseApp
+export const firestore = getFirestore()
