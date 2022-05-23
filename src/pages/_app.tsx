@@ -10,7 +10,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { collection, doc, getDoc, getFirestore, setDoc } from 'firebase/firestore'
 import { User } from '../types/User'
 import { app } from '../lib/firebase'
-import { checkIfRegistered } from '../lib/firebase-auth'
+import { checkIfRegistered, fetchUser } from '../lib/firebase-auth'
 
 // TODO: 将来必要に応じて変更する
 dayjs.locale('ja')
@@ -32,14 +32,20 @@ function AppInit() {
         // 且つ、usersコレクションにも存在しているか確認
         const isRegisterd = await checkIfRegistered(firebaseUser.uid)
 
-        const loginUser: User = {
-          uid: firebaseUser.uid,
-          isFinishedRegisterUserInfo: isRegisterd,
-          name: googleProviderData.displayName,
-          profileImageURL: googleProviderData.photoURL,
+        let user: User
+        if (isRegisterd) {
+          user = await fetchUser(firebaseUser.uid)
+        } else {
+          // TODO: ユーザー情報を設定してもらうためにリダイレクトする
+          user = {
+            uid: firebaseUser.uid,
+            isFinishedRegisterUserInfo: isRegisterd,
+            name: ``,
+            profileImageURL: googleProviderData.photoURL,
+          }
         }
 
-        setUser(loginUser)
+        setUser(user)
       } else {
         console.log('User is not signed in')
         setUser(null)

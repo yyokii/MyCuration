@@ -27,4 +27,4 @@ if (getApps().length === 0) {
 }
 
 export const app = firebaseApp
-export const firestore = getFirestore()
+export const firestore = getFirestore(app)
