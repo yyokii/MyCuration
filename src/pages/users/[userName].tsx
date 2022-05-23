@@ -31,15 +31,6 @@ type Query = {
   userName: string
 }
 
-/**
- * /username
- *
- * 自分のページ or 他のユーザー
- * → （他のユーザーの場合）usernameをuserNames collectionから取得
- * → uidを取得
- * → users collectionから詳細データ取得
- */
-
 export default function UserShow() {
   const { currentUser } = useCurrentUser()
 
@@ -75,8 +66,10 @@ export default function UserShow() {
       loadArticles(currentUser.uid)
     } else {
       // 他のユーザー
-      loadUser()
-      loadArticles(user.uid)
+      ;(async () => {
+        const user = await loadUser()
+        loadArticles(user.uid)
+      })()
     }
 
     async function loadUser() {
@@ -102,6 +95,7 @@ export default function UserShow() {
       user.uid = userDoc.id
 
       setUser(user)
+      return user
     }
   }, [currentUser, queryPath.userName])
 
