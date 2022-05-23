@@ -30,6 +30,8 @@ export default function Onboarding() {
     const userRef = doc(collection(db, 'users'), currentUser.uid)
     const userNamesRef = doc(userNamesCollection, userName)
 
+    currentUser.name = userName
+    currentUser.isFinishedRegisterUserInfo = true
     setIsSending(true)
     await runTransaction(db, async (transaction) => {
       transaction.set(userRef, currentUser)

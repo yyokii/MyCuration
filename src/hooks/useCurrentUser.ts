@@ -1,5 +1,3 @@
-import { useRouter } from 'next/router'
-import { useEffect } from 'react'
 import { useRecoilValue } from 'recoil'
 import { userState } from '../states/user'
 
