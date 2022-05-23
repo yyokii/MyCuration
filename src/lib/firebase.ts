@@ -8,6 +8,8 @@ import { getFirestore } from 'firebase/firestore'
 
 var firebaseApp: FirebaseApp
 
+// No Firebase App '[DEFAULT]' has been created - call Firebase App.initializeApp() (app/no-app)
+// https://github.com/vercel/next.js/discussions/11351
 if (getApps().length === 0) {
   // 初期化済みでない場合に実行
   const firebaseConfig = {
@@ -21,7 +23,10 @@ if (getApps().length === 0) {
   }
 
   firebaseApp = initializeApp(firebaseConfig)
-  getAnalytics()
+
+  if (typeof window !== 'undefined') {
+    getAnalytics(firebaseApp)
+  }
 } else {
   firebaseApp = getApps()[0]
 }
