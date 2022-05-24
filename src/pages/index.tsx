@@ -3,6 +3,9 @@ import Layout from '../components/Layout'
 import { useCurrentUser } from '../hooks/useCurrentUser'
 
 export default function Home() {
+  const { currentUser } = useCurrentUser()
+  const myPagePath = `/users/${currentUser?.name}`
+
   return (
     <Layout>
       <div className='text-center'>
@@ -10,7 +13,7 @@ export default function Home() {
           <div className='row col-12 col-md-6'>
             <h1>Myサービス</h1>
             <p>ここはサービスです。</p>
-            <Link href='/users/me'>
+            <Link href={myPagePath}>
               <a className='btn btn-primary' role='button'>
                 Hi！
               </a>

@@ -11,6 +11,7 @@ import { collection, doc, getDoc, getFirestore, setDoc } from 'firebase/firestor
 import { User } from '../types/User'
 import { app } from '../lib/firebase'
 import { checkIfRegistered, fetchUser } from '../lib/firebase-auth'
+import { useRouter } from 'next/router'
 
 // TODO: 将来必要に応じて変更する
 dayjs.locale('ja')
@@ -18,6 +19,7 @@ dayjs.locale('ja')
 function AppInit() {
   const setUser = useSetRecoilState(userState)
   const auth = getAuth(app)
+  const router = useRouter()
 
   useEffect(() => {
     onAuthStateChanged(auth, async function (firebaseUser) {
@@ -36,12 +38,15 @@ function AppInit() {
         if (isRegisterd) {
           user = await fetchUser(firebaseUser.uid)
         } else {
-          // TODO: ユーザー情報を設定してもらうためにリダイレクトする
+          console.log('ユーザー情報未入力')
           user = {
             uid: firebaseUser.uid,
             isFinishedRegisterUserInfo: isRegisterd,
             name: ``,
             profileImageURL: googleProviderData.photoURL,
+          }
+          if (router.isReady) {
+            router.push('/onboarding')
           }
         }
 
