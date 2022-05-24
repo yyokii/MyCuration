@@ -1,14 +1,18 @@
 import { collection, doc, getDoc, runTransaction } from 'firebase/firestore'
 import { useRouter } from 'next/router'
 import { FormEvent, useEffect, useState } from 'react'
+import { useSetRecoilState } from 'recoil'
 import Layout from '../components/Layout'
 import { useCurrentUser } from '../hooks/useCurrentUser'
 import { firestore } from '../lib/firebase'
+import { userState } from '../states/user'
+import { User } from '../types/User'
 
 export default function Onboarding() {
   const router = useRouter()
   const { currentUser } = useCurrentUser()
 
+  const setUser = useSetRecoilState(userState)
   const [userName, setBody] = useState('')
   const [isSending, setIsSending] = useState(false)
 
@@ -30,11 +34,16 @@ export default function Onboarding() {
     const userRef = doc(collection(db, 'users'), currentUser.uid)
     const userNamesRef = doc(userNamesCollection, userName)
 
-    currentUser.name = userName
-    currentUser.isFinishedRegisterUserInfo = true
+    const user: User = {
+      uid: currentUser.uid,
+      isFinishedRegisterUserInfo: true,
+      name: userName,
+      profileImageURL: currentUser.profileImageURL,
+    }
+    setUser(user)
     setIsSending(true)
     await runTransaction(db, async (transaction) => {
-      transaction.set(userRef, currentUser)
+      transaction.set(userRef, user)
       transaction.set(userNamesRef, {
         uid: currentUser.uid,
       })

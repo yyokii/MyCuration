@@ -68,7 +68,12 @@ export default function UserShow() {
       // 他のユーザー
       ;(async () => {
         const user = await loadUser()
-        loadArticles(user.uid)
+        if (user === undefined || user === null) {
+          // TODO: 対象ユーザーが存在しない場合のページ表示
+          console.log('ユーザーが存在しません')
+        } else {
+          loadArticles(user.uid)
+        }
       })()
     }
 
