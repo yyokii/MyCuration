@@ -14,9 +14,9 @@ import {
   where,
 } from 'firebase/firestore'
 import Layout from '../../components/Layout'
-import { Question } from '../../models/Question'
-import { useAuthentication } from '../../hooks/authentication'
-import { Answer } from '../../models/Answer'
+import { Question } from '../../types/Question'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
+import { Answer } from '../../types/Answer'
 
 type Query = {
   id: string
@@ -25,19 +25,19 @@ type Query = {
 export default function QuestionsShow() {
   const router = useRouter()
   const routerQuery = router.query as Query
-  const user = useAuthentication()
+  const { currentUser } = useCurrentUser()
   const [body, setBody] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [question, setQuestion] = useState<Question>(null)
   const [answer, setAnswer] = useState<Answer>(null)
 
   useEffect(() => {
-    if (user === null) {
+    if (currentUser === null) {
       return
     }
 
     loadData()
-  }, [routerQuery.id, user])
+  }, [routerQuery.id, currentUser])
 
   function getCollections() {
     const db = getFirestore()
@@ -90,7 +90,7 @@ export default function QuestionsShow() {
 
     await runTransaction(db, async (t) => {
       t.set(answerRef, {
-        uid: user.uid,
+        uid: currentUser.uid,
         questionId: question.id,
         body,
         createdAt: serverTimestamp(),
@@ -103,7 +103,7 @@ export default function QuestionsShow() {
     const now = new Date().getTime()
     setAnswer({
       id: answerRef.id,
-      uid: user.uid,
+      uid: currentUser.uid,
       questionId: question.id,
       body,
       createdAt: new Timestamp(now / 1000, now % 1000),

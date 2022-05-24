@@ -1,16 +1,19 @@
 import Link from 'next/link'
 import Layout from '../components/Layout'
+import { useCurrentUser } from '../hooks/useCurrentUser'
 
 export default function Home() {
+  const { currentUser } = useCurrentUser()
+  const myPagePath = `/users/${currentUser?.name}`
+
   return (
-    // TODO: サインイン、会員登録機能への導線を追加する
     <Layout>
       <div className='text-center'>
         <div className='row justify-content-center'>
           <div className='row col-12 col-md-6'>
             <h1>Myサービス</h1>
             <p>ここはサービスです。</p>
-            <Link href='/users/me'>
+            <Link href={myPagePath}>
               <a className='btn btn-primary' role='button'>
                 Hi！
               </a>

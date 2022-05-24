@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { User } from '../../models/User'
+import { User } from '../../types/User'
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import {
   addDoc,
@@ -18,20 +18,26 @@ import {
   deleteDoc,
 } from 'firebase/firestore'
 import Layout from '../../components/Layout'
-import { useAuthentication } from '../../hooks/authentication'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { toast } from 'react-toastify'
 import Link from 'next/link'
 import dayjs from 'dayjs'
-import { Article } from '../../models/Article'
+import { Article } from '../../types/Article'
+import { firestore } from '../../lib/firebase'
+import { UserID } from '../../types/UserID'
+import Image from 'next/image'
 
 type Query = {
-  uid: string
+  userName: string
 }
 
 export default function UserShow() {
-  const currentUser = useAuthentication()
+  const { currentUser } = useCurrentUser()
 
   // State
+
+  // 本画面で表示する対象ユーザー
+  // null: ログインしているユーザー自身の場合nullとなる
   const [user, setUser] = useState<User>(null)
   const [body, setBody] = useState('')
   const [isSending, setIsSending] = useState(false)
@@ -44,28 +50,59 @@ export default function UserShow() {
 
   // Effect
 
+  // ユーザー情報と記事の取得を行う
   useEffect(() => {
-    if (queryPath.uid === undefined) {
+    if (currentUser === null) {
       return
     }
 
-    loadUser()
-    loadArticles()
+    if (queryPath.userName === undefined) {
+      return
+    }
+
+    if (queryPath.userName === currentUser.name) {
+      // 自分のページ
+      setUser(null)
+      loadArticles(currentUser.uid)
+    } else {
+      // 他のユーザー
+      ;(async () => {
+        const user = await loadUser()
+        if (user === undefined || user === null) {
+          // TODO: 対象ユーザーが存在しない場合のページ表示
+          console.log('ユーザーが存在しません')
+        } else {
+          loadArticles(user.uid)
+        }
+      })()
+    }
 
     async function loadUser() {
-      const db = getFirestore()
-      const ref = doc(collection(db, 'users'), queryPath.uid)
-      const userDoc = await getDoc(ref)
+      // ユーザー名からuidを取得
+      const userNameRef = doc(collection(firestore, 'userNames'), queryPath.userName)
+      const userNameDoc = await getDoc(userNameRef)
+
+      if (!userNameDoc.exists()) {
+        return
+      }
+
+      const userID = (userNameDoc.data() as UserID).uid
+
+      // uidからユーザー情報を取得
+      const userDocRef = doc(collection(firestore, 'users'), userID)
+      const userDoc = await getDoc(userDocRef)
 
       if (!userDoc.exists()) {
         return
       }
 
-      const gotUser = userDoc.data() as User
-      gotUser.uid = userDoc.id
-      setUser(gotUser)
+      const user = userDoc.data() as User
+      user.uid = userDoc.id
+
+      setUser(user)
+      return user
     }
-  }, [queryPath.uid])
+  }, [currentUser, queryPath.userName])
 
   useEffect(() => {
     window.addEventListener('scroll', onScroll)
@@ -74,8 +111,8 @@ export default function UserShow() {
     }
   }, [articles, scrollContainerRef.current, isPaginationFinished])
 
-  async function loadArticles(isReload: boolean = false) {
-    const snapshot = await getDocs(createArticlesBaseQuery())
+  async function loadArticles(uid: string, isReload: boolean = false) {
+    const snapshot = await getDocs(createArticlesBaseQuery(uid))
 
     if (snapshot.empty) {
       setIsPaginationFinished(true)
@@ -85,14 +122,14 @@ export default function UserShow() {
     appendArticles(snapshot, isReload)
   }
 
-  async function loadNextArticles() {
+  async function loadNextArticles(uid: string) {
     if (articles.length === 0) {
       return
     }
 
     const lastQuestion = articles[articles.length - 1]
     const snapshot = await getDocs(
-      query(createArticlesBaseQuery(), startAfter(lastQuestion.createdAt)),
+      query(createArticlesBaseQuery(uid), startAfter(lastQuestion.createdAt)),
     )
 
     if (snapshot.empty) {
@@ -116,10 +153,9 @@ export default function UserShow() {
     }
   }
 
-  function createArticlesBaseQuery() {
-    const db = getFirestore()
+  function createArticlesBaseQuery(uid: string) {
     return query(
-      collection(db, `users/${queryPath.uid}/articles`),
+      collection(firestore, `users/${uid}/articles`),
       orderBy('createdAt', 'desc'),
       limit(20),
     )
@@ -152,7 +188,7 @@ export default function UserShow() {
       progress: undefined,
     })
 
-    loadArticles(true)
+    loadArticles(currentUser.uid, true)
   }
 
   function onScroll() {
@@ -170,51 +206,73 @@ export default function UserShow() {
       return
     }
 
-    loadNextArticles()
+    let targetuid: string
+    if (user === null) {
+      targetuid = currentUser.uid
+    } else {
+      targetuid = user.uid
+    }
+
+    loadNextArticles(targetuid)
   }
 
   async function deleteArticle(article: Article) {
+    if (user !== null) {
+      // 他のユーザー情報を保持している場合
+      return
+    }
+
     const db = getFirestore()
     await deleteDoc(doc(db, `users/${currentUser.uid}/articles`, article.id))
 
-    loadArticles(true)
+    loadArticles(currentUser.uid, true)
   }
 
   return (
     <Layout>
-      {user && currentUser && (
+      {currentUser && (
         <div className='text-center'>
-          <h1 className='h4'>{user.name}さんのページ</h1>
           <div className='row justify-content-center mb-3'>
             <div className='col-12 col-md-6'>
               <div>
-                {user.uid === currentUser.uid ? (
+                {user === null ? (
                   /**
                    * 自分のページ
                    *
                    * 投稿内容閲覧、追加、編集、削除が可能であるページ
                    */
-                  <form onSubmit={onSubmitItem}>
-                    <textarea
-                      className='form-control'
-                      placeholder='アイテム'
-                      rows={6}
-                      value={body}
-                      onChange={(e) => setBody(e.target.value)}
-                      required
-                    ></textarea>
-                    <div className='m-3'>
-                      {isSending ? (
-                        <div className='spinner-border text-secondary' role='status'>
-                          <span className='visually-hidden'>Loading...</span>
-                        </div>
-                      ) : (
-                        <button type='submit' className='btn btn-primary'>
-                          追加する
-                        </button>
-                      )}
-                    </div>
-                  </form>
+                  <div>
+                    <section className='text-center'>
+                      <Image
+                        src={currentUser.profileImageURL}
+                        width={100}
+                        height={100}
+                        alt='display name'
+                      />
+                      <h1 className='h4'>{currentUser.name}のページ</h1>
+                    </section>
+                    <form onSubmit={onSubmitItem}>
+                      <textarea
+                        className='form-control'
+                        placeholder='アイテム'
+                        rows={6}
+                        value={body}
+                        onChange={(e) => setBody(e.target.value)}
+                        required
+                      ></textarea>
+                      <div className='m-3'>
+                        {isSending ? (
+                          <div className='spinner-border text-secondary' role='status'>
+                            <span className='visually-hidden'>Loading...</span>
+                          </div>
+                        ) : (
+                          <button type='submit' className='btn btn-primary'>
+                            追加する
+                          </button>
+                        )}
+                      </div>
+                    </form>
+                  </div>
                 ) : (
                   /**
                    * 他のアカウントのページ
