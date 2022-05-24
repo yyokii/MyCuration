@@ -4,11 +4,14 @@ import { getAnalytics } from 'firebase/analytics'
 import 'firebase/analytics'
 import 'firebase/auth'
 import 'firebase/firestore'
+import { getFirestore } from 'firebase/firestore'
 
 var firebaseApp: FirebaseApp
 
-if (typeof window !== 'undefined' && getApps().length === 0) {
-  // サーバーサイドでの処理でない、かつ初期化済みでない場合に実行
+// No Firebase App '[DEFAULT]' has been created - call Firebase App.initializeApp() (app/no-app)
+// https://github.com/vercel/next.js/discussions/11351
+if (getApps().length === 0) {
+  // 初期化済みでない場合に実行
   const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -20,7 +23,13 @@ if (typeof window !== 'undefined' && getApps().length === 0) {
   }
 
   firebaseApp = initializeApp(firebaseConfig)
-  getAnalytics()
+
+  if (typeof window !== 'undefined') {
+    getAnalytics(firebaseApp)
+  }
+} else {
+  firebaseApp = getApps()[0]
 }
 
 export const app = firebaseApp
+export const firestore = getFirestore(app)
