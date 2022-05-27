@@ -20,12 +20,11 @@ import {
 import Layout from '../../components/Layout'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { toast } from 'react-toastify'
-import Link from 'next/link'
-import dayjs from 'dayjs'
 import { Article } from '../../types/Article'
 import { firestore } from '../../lib/firebase'
 import { UserID } from '../../types/UserID'
 import Image from 'next/image'
+import Item from '../../components/Article/Item'
 
 type Query = {
   userName: string
@@ -216,7 +215,7 @@ export default function UserShow() {
     loadNextArticles(targetuid)
   }
 
-  async function deleteArticle(article: Article) {
+  async function onClickDelete(article: Article) {
     if (user !== null) {
       // 他のユーザー情報を保持している場合
       return
@@ -286,23 +285,11 @@ export default function UserShow() {
                 {articles.map((article) => (
                   // FIXME: questionへのリンクではなくなる
                   <div key={article.id}>
-                    <div className='card my-3' key={article.id}>
-                      <div className='m-1 text-end' onClick={(e) => deleteArticle(article)}>
-                        <i className='material-icons'>delete</i>
-                      </div>
-                      <Link href={`/questions/${article.id}`}>
-                        <a>
-                          <div className='card-body'>
-                            <div className='text-truncate'>{article.contentURL}</div>
-                          </div>
-                          <div className='text-muted text-end'>
-                            <small>
-                              {dayjs(article.createdAt.toDate()).format('YYYY/MM/DD HH:mm')}
-                            </small>
-                          </div>
-                        </a>
-                      </Link>
-                    </div>
+                    <Item
+                      article={article}
+                      isCurrentUser={user === null}
+                      onClickDelete={(article) => onClickDelete(article)}
+                    ></Item>
                   </div>
                 ))}
               </div>

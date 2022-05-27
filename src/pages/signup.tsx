@@ -3,11 +3,6 @@ import Layout from '../components/Layout'
 import { login, logout } from '../lib/firebase-auth'
 
 export default function Signup() {
-  const handleLogin = (): void => {
-    console.log('login')
-    login().catch((error) => console.error(error))
-  }
-
   const handleLogout = (): void => {
     logout().catch((error) => console.error(error))
   }
@@ -23,7 +18,6 @@ export default function Signup() {
                 ログイン
               </a>
             </Link>
-            <button onClick={handleLogin}>ログイン</button>
             {/* <button onClick={handleLogout}>ログアウト</button> */}
           </div>
         </div>
