@@ -25,6 +25,7 @@ import { firestore } from '../../lib/firebase'
 import { UserID } from '../../types/UserID'
 import Image from 'next/image'
 import Item from '../../components/Article/Item'
+import { Box, StackDivider, VStack } from '@chakra-ui/react'
 
 type Query = {
   userName: string
@@ -233,7 +234,7 @@ export default function UserShow() {
         <div className='text-center'>
           <div className='row justify-content-center mb-3'>
             <div className='col-12 col-md-6'>
-              <div>
+              <VStack divider={<StackDivider borderColor='gray.200' />} spacing={4} align='center'>
                 {user === null ? (
                   /**
                    * 自分のページ
@@ -280,19 +281,21 @@ export default function UserShow() {
                    */
                   <div>（仮）他の人のページです</div>
                 )}
-              </div>
-              <div className='col-12' ref={scrollContainerRef}>
-                {articles.map((article) => (
-                  // FIXME: questionへのリンクではなくなる
-                  <div key={article.id}>
-                    <Item
-                      article={article}
-                      isCurrentUser={user === null}
-                      onClickDelete={(article) => onClickDelete(article)}
-                    ></Item>
-                  </div>
-                ))}
-              </div>
+              </VStack>
+              {/* 記事一覧 */}
+              <VStack divider={<StackDivider borderColor='gray.200' />} spacing={4} align='center'>
+                <Box className='col-12' ref={scrollContainerRef}>
+                  {articles.map((article) => (
+                    <div key={article.id}>
+                      <Item
+                        article={article}
+                        isCurrentUser={user === null}
+                        onClickDelete={(article) => onClickDelete(article)}
+                      ></Item>
+                    </div>
+                  ))}
+                </Box>
+              </VStack>
             </div>
           </div>
         </div>
