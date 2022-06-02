@@ -20,12 +20,13 @@ import {
 import Layout from '../../components/Layout'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { toast } from 'react-toastify'
-import Link from 'next/link'
-import dayjs from 'dayjs'
 import { Article } from '../../types/Article'
 import { firestore } from '../../lib/firebase'
 import { UserID } from '../../types/UserID'
 import Image from 'next/image'
+import Item from '../../components/Article/Item'
+import { Box, Button, StackDivider, useDisclosure, VStack } from '@chakra-ui/react'
+import { UpdateArticleModal } from '../../components/Dialog/UpdateArticleModal'
 
 type Query = {
   userName: string
@@ -33,6 +34,7 @@ type Query = {
 
 export default function UserShow() {
   const { currentUser } = useCurrentUser()
+  const { isOpen, onOpen, onClose } = useDisclosure()
 
   // State
 
@@ -43,6 +45,7 @@ export default function UserShow() {
   const [isSending, setIsSending] = useState(false)
   const [articles, setArticles] = useState<Article[]>([])
   const [isPaginationFinished, setIsPaginationFinished] = useState(false)
+  const [selectedArticle, setSelectedArticle] = useState<Article>(null)
 
   const scrollContainerRef = useRef(null)
   const router = useRouter()
@@ -216,7 +219,7 @@ export default function UserShow() {
     loadNextArticles(targetuid)
   }
 
-  async function deleteArticle(article: Article) {
+  async function onClickDelete(article: Article) {
     if (user !== null) {
       // 他のユーザー情報を保持している場合
       return
@@ -228,87 +231,91 @@ export default function UserShow() {
     loadArticles(currentUser.uid, true)
   }
 
+  function onOpennUpdateArticleMpdal(article: Article) {
+    setSelectedArticle(article)
+    onOpen()
+  }
+
+  function onCloseUpdateArticleMpdal() {
+    onClose()
+    if (queryPath.userName === currentUser.name) {
+      loadArticles(currentUser.uid, true)
+    }
+  }
+
   return (
     <Layout>
       {currentUser && (
-        <div className='text-center'>
-          <div className='row justify-content-center mb-3'>
-            <div className='col-12 col-md-6'>
+        <Box>
+          <VStack divider={<StackDivider borderColor='gray.200' />} spacing={4} align='center'>
+            {user === null ? (
+              /**
+               * 自分のページ
+               *
+               * 投稿内容閲覧、追加、編集、削除が可能であるページ
+               */
               <div>
-                {user === null ? (
-                  /**
-                   * 自分のページ
-                   *
-                   * 投稿内容閲覧、追加、編集、削除が可能であるページ
-                   */
-                  <div>
-                    <section className='text-center'>
-                      <Image
-                        src={currentUser.profileImageURL}
-                        width={100}
-                        height={100}
-                        alt='display name'
-                      />
-                      <h1 className='h4'>{currentUser.name}のページ</h1>
-                    </section>
-                    <form onSubmit={onSubmitItem}>
-                      <textarea
-                        className='form-control'
-                        placeholder='アイテム'
-                        rows={6}
-                        value={body}
-                        onChange={(e) => setBody(e.target.value)}
-                        required
-                      ></textarea>
-                      <div className='m-3'>
-                        {isSending ? (
-                          <div className='spinner-border text-secondary' role='status'>
-                            <span className='visually-hidden'>Loading...</span>
-                          </div>
-                        ) : (
-                          <button type='submit' className='btn btn-primary'>
-                            追加する
-                          </button>
-                        )}
+                <section className='text-center'>
+                  <Image
+                    src={currentUser.profileImageURL}
+                    width={100}
+                    height={100}
+                    alt='display name'
+                  />
+                  <h1 className='h4'>{currentUser.name}のページ</h1>
+                </section>
+                <form onSubmit={onSubmitItem}>
+                  <textarea
+                    className='form-control'
+                    placeholder='アイテム'
+                    rows={6}
+                    value={body}
+                    onChange={(e) => setBody(e.target.value)}
+                    required
+                  ></textarea>
+                  <div className='m-3'>
+                    {isSending ? (
+                      <div className='spinner-border text-secondary' role='status'>
+                        <span className='visually-hidden'>Loading...</span>
                       </div>
-                    </form>
+                    ) : (
+                      <button type='submit' className='btn btn-primary'>
+                        追加する
+                      </button>
+                    )}
                   </div>
-                ) : (
-                  /**
-                   * 他のアカウントのページ
-                   *
-                   * 投稿内容閲覧が可能であるページ
-                   */
-                  <div>（仮）他の人のページです</div>
-                )}
+                </form>
               </div>
-              <div className='col-12' ref={scrollContainerRef}>
-                {articles.map((article) => (
-                  // FIXME: questionへのリンクではなくなる
-                  <div key={article.id}>
-                    <div className='card my-3' key={article.id}>
-                      <div className='m-1 text-end' onClick={(e) => deleteArticle(article)}>
-                        <i className='material-icons'>delete</i>
-                      </div>
-                      <Link href={`/questions/${article.id}`}>
-                        <a>
-                          <div className='card-body'>
-                            <div className='text-truncate'>{article.contentURL}</div>
-                          </div>
-                          <div className='text-muted text-end'>
-                            <small>
-                              {dayjs(article.createdAt.toDate()).format('YYYY/MM/DD HH:mm')}
-                            </small>
-                          </div>
-                        </a>
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+            ) : (
+              /**
+               * 他のアカウントのページ
+               *
+               * 投稿内容閲覧が可能であるページ
+               */
+              <div>（仮）他の人のページです</div>
+            )}
+          </VStack>
+          {/* 記事一覧 */}
+          <VStack divider={<StackDivider borderColor='gray.200' />} spacing={4} align='center'>
+            <Box className='col-12' ref={scrollContainerRef}>
+              {articles.map((article) => (
+                <div key={article.id}>
+                  <Item
+                    article={article}
+                    isCurrentUser={user === null}
+                    onClickDelete={(article) => onClickDelete(article)}
+                  ></Item>
+                  <Button onClick={() => onOpennUpdateArticleMpdal(article)}>Open Modal</Button>
+                </div>
+              ))}
+            </Box>
+          </VStack>
+          <UpdateArticleModal
+            article={selectedArticle}
+            isOpen={isOpen}
+            onClose={() => onCloseUpdateArticleMpdal()}
+          />
+        </Box>
       )}
     </Layout>
   )

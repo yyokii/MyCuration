@@ -1,3 +1,4 @@
+import { ChakraProvider } from '@chakra-ui/react'
 import { RecoilRoot, useSetRecoilState } from 'recoil'
 import '../lib/firebase'
 import '../hooks/useCurrentUser'
@@ -78,7 +79,9 @@ async function createUserIfNotFound(user: User) {
 function MyApp({ Component, pageProps }) {
   return (
     <RecoilRoot>
-      <Component {...pageProps} />
+      <ChakraProvider>
+        <Component {...pageProps} />
+      </ChakraProvider>
       <AppInit />
     </RecoilRoot>
   )
