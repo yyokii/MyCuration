@@ -2,9 +2,9 @@ import { Timestamp } from 'firebase/firestore'
 
 export interface Article {
   id: string
-  category: String
-  comment: String
-  contentURL: String
+  category: string
+  comment: string
+  contentURL: string
   createdAt: Timestamp
   updatedAt: Timestamp
 }
