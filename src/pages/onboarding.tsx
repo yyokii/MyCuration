@@ -16,8 +16,6 @@ export default function Onboarding() {
   const [userName, setBody] = useState('')
   const [isSending, setIsSending] = useState(false)
 
-  useEffect(() => {}, [])
-
   async function onSubmitItem(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const db = firestore

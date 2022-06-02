@@ -1,33 +1,22 @@
+import { Box, Button, StackDivider, VStack } from '@chakra-ui/react'
 import Link from 'next/link'
 import Layout from '../components/Layout'
 import { login, logout } from '../lib/firebase-auth'
 
 export default function Signup() {
-  const handleLogin = (): void => {
-    console.log('login')
-    login().catch((error) => console.error(error))
-  }
-
   const handleLogout = (): void => {
     logout().catch((error) => console.error(error))
   }
 
   return (
     <Layout>
-      <div className='text-center'>
-        <div className='row justify-content-center'>
-          <div className='col-12 col-md-6'>
-            <h1>サインイン</h1>
-            <Link href='/auth-redirect?redirect_uri=onboarding'>
-              <a className='mt-5 btn btn-primary' role='button'>
-                ログイン
-              </a>
-            </Link>
-            <button onClick={handleLogin}>ログイン</button>
-            {/* <button onClick={handleLogout}>ログアウト</button> */}
-          </div>
-        </div>
-      </div>
+      <VStack divider={<StackDivider borderColor='gray.200' />} spacing={4} align='center'>
+        <Box h='40px' my={5}>
+          <Link href='/auth-redirect?redirect_uri=onboarding' passHref>
+            <Button as='a'>ログイン</Button>
+          </Link>
+        </Box>
+      </VStack>
     </Layout>
   )
 }
