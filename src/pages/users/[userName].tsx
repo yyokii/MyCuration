@@ -27,6 +27,7 @@ import Image from 'next/image'
 import Item from '../../components/Article/Item'
 import { Box, Button, StackDivider, useDisclosure, VStack } from '@chakra-ui/react'
 import { UpdateArticleModal } from '../../components/Dialog/UpdateArticleModal'
+import { Tag } from '../../types/Tag'
 
 type Query = {
   userName: string
@@ -44,6 +45,7 @@ export default function UserShow() {
   const [body, setBody] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [articles, setArticles] = useState<Article[]>([])
+  const [tags, setTags] = useState<Tag[]>([])
   const [isPaginationFinished, setIsPaginationFinished] = useState(false)
   const [selectedArticle, setSelectedArticle] = useState<Article>(null)
 
@@ -63,22 +65,23 @@ export default function UserShow() {
       return
     }
 
-    if (queryPath.userName === currentUser.name) {
-      // 自分のページ
-      setUser(null)
-      loadArticles(currentUser.uid)
-    } else {
-      // 他のユーザー
-      ;(async () => {
+    ;(async () => {
+      const tags = await loadTags()
+      if (queryPath.userName === currentUser.name) {
+        // 自分のページ
+        setUser(null)
+        loadArticles(currentUser.uid, tags)
+      } else {
+        // 他のユーザー
         const user = await loadUser()
         if (user === undefined || user === null) {
           // TODO: 対象ユーザーが存在しない場合のページ表示
           console.log('ユーザーが存在しません')
         } else {
-          loadArticles(user.uid)
+          loadArticles(user.uid, tags)
         }
-      })()
-    }
+      }
+    })()
 
     async function loadUser() {
       // ユーザー名からuidを取得
@@ -114,7 +117,7 @@ export default function UserShow() {
     }
   }, [articles, scrollContainerRef.current, isPaginationFinished])
 
-  async function loadArticles(uid: string, isReload: boolean = false) {
+  async function loadArticles(uid: string, tags: Tag[], isReload: boolean = false) {
     const snapshot = await getDocs(createArticlesBaseQuery(uid))
 
     if (snapshot.empty) {
@@ -122,7 +125,7 @@ export default function UserShow() {
       return
     }
 
-    appendArticles(snapshot, isReload)
+    appendArticles(snapshot, tags, isReload)
   }
 
   async function loadNextArticles(uid: string) {
@@ -139,13 +142,31 @@ export default function UserShow() {
       return
     }
 
-    appendArticles(snapshot)
+    appendArticles(snapshot, tags)
   }
 
-  function appendArticles(snapshot: QuerySnapshot<DocumentData>, isReload: boolean = false) {
+  function appendArticles(
+    snapshot: QuerySnapshot<DocumentData>,
+    tags: Tag[],
+    isReload: boolean = false,
+  ) {
     const fetchedArticles = snapshot.docs.map((doc) => {
       const article = doc.data() as Article
       article.id = doc.id
+
+      // tagの設定
+      article.tags = new Map(Object.entries(article.tags))
+      for (const [key, value] of article.tags) {
+        console.log(key, article.tags[key])
+        if (value) {
+          const displayName = tags.find((tag) => tag.id === key).name
+          if (article.displayTags === undefined) {
+            article.displayTags = []
+          }
+          article.displayTags.push(displayName)
+        }
+      }
+
       return article
     })
 
@@ -162,6 +183,20 @@ export default function UserShow() {
       orderBy('createdAt', 'desc'),
       limit(20),
     )
+  }
+
+  async function loadTags(): Promise<Tag[]> {
+    console.log('loadTags')
+    const snapshot = await getDocs(query(collection(firestore, `tags`), orderBy('name')))
+
+    const fetchedTags = snapshot.docs.map((doc) => {
+      const tag = doc.data() as Tag
+      tag.id = doc.id
+      return tag
+    })
+
+    setTags(fetchedTags)
+    return fetchedTags
   }
 
   // Actions
@@ -191,7 +226,7 @@ export default function UserShow() {
       progress: undefined,
     })
 
-    loadArticles(currentUser.uid, true)
+    loadArticles(currentUser.uid, tags, true)
   }
 
   function onScroll() {
@@ -228,7 +263,7 @@ export default function UserShow() {
     const db = getFirestore()
     await deleteDoc(doc(db, `users/${currentUser.uid}/articles`, article.id))
 
-    loadArticles(currentUser.uid, true)
+    loadArticles(currentUser.uid, tags, true)
   }
 
   function onOpennUpdateArticleMpdal(article: Article) {
@@ -239,7 +274,7 @@ export default function UserShow() {
   function onCloseUpdateArticleMpdal() {
     onClose()
     if (queryPath.userName === currentUser.name) {
-      loadArticles(currentUser.uid, true)
+      loadArticles(currentUser.uid, tags, true)
     }
   }
 

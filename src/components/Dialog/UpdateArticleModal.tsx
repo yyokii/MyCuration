@@ -38,6 +38,7 @@ export function UpdateArticleModal(props: Props) {
     }
   }, [props])
 
+  // TODO: 親が指定するようにする
   async function onUpdateItem() {
     setIsSending(true)
     const docRef = doc(firestore, `users/${currentUser.uid}/articles`, props.article.id)
