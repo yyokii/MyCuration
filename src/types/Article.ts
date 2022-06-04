@@ -6,5 +6,7 @@ export interface Article {
   comment: string
   contentURL: string
   createdAt: Timestamp
+  tags: Map<string, boolean>
+  displayTags: string[]
   updatedAt: Timestamp
 }
