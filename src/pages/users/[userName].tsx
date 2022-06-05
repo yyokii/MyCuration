@@ -28,6 +28,8 @@ import Item from '../../components/Article/Item'
 import { Box, Button, StackDivider, useDisclosure, VStack } from '@chakra-ui/react'
 import { UpdateArticleModal } from '../../components/Dialog/UpdateArticleModal'
 import { Tag } from '../../types/Tag'
+import AutoComplete from '../../components/AutoComplete'
+import { Item as ItemObject } from 'chakra-ui-autocomplete'
 
 type Query = {
   userName: string
@@ -46,6 +48,9 @@ export default function UserShow() {
   const [isSending, setIsSending] = useState(false)
   const [articles, setArticles] = useState<Article[]>([])
   const [tags, setTags] = useState<Tag[]>([])
+  const [tagItems, setTagItems] = useState<ItemObject[]>([])
+  const [selectedTagItems, setSelectedTagItems] = useState<ItemObject[]>([])
+
   const [isPaginationFinished, setIsPaginationFinished] = useState(false)
   const [selectedArticle, setSelectedArticle] = useState<Article>(null)
 
@@ -186,7 +191,6 @@ export default function UserShow() {
   }
 
   async function loadTags(): Promise<Tag[]> {
-    console.log('loadTags')
     const snapshot = await getDocs(query(collection(firestore, `tags`), orderBy('name')))
 
     const fetchedTags = snapshot.docs.map((doc) => {
@@ -194,8 +198,17 @@ export default function UserShow() {
       tag.id = doc.id
       return tag
     })
-
     setTags(fetchedTags)
+
+    // タグ入力欄のオートコンプリート用のデータを作成
+    const tagItems = fetchedTags.map((tag) => {
+      return {
+        value: tag.id,
+        label: tag.name,
+      }
+    })
+    setTagItems(tagItems)
+
     return fetchedTags
   }
 
@@ -278,6 +291,12 @@ export default function UserShow() {
     }
   }
 
+  const handleSelectedItemsChange = (selectedItems) => {
+    if (selectedItems) {
+      setSelectedTagItems(selectedItems)
+    }
+  }
+
   return (
     <Layout>
       {currentUser && (
@@ -308,6 +327,13 @@ export default function UserShow() {
                     onChange={(e) => setBody(e.target.value)}
                     required
                   ></textarea>
+                  <AutoComplete
+                    label='Select tags'
+                    placeholder='Type a tag'
+                    items={tagItems}
+                    selectedItems={selectedTagItems}
+                    handleSelectedItemsChange={(value) => handleSelectedItemsChange(value)}
+                  />
                   <div className='m-3'>
                     {isSending ? (
                       <div className='spinner-border text-secondary' role='status'>
