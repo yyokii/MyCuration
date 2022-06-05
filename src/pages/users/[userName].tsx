@@ -133,9 +133,9 @@ export default function UserShow() {
       return
     }
 
-    const lastQuestion = articles[articles.length - 1]
+    const lastArticle = articles[articles.length - 1]
     const snapshot = await getDocs(
-      query(createArticlesBaseQuery(uid), startAfter(lastQuestion.createdAt)),
+      query(createArticlesBaseQuery(uid), startAfter(lastArticle.createdAt)),
     )
 
     if (snapshot.empty) {
