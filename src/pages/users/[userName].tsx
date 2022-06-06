@@ -41,14 +41,12 @@ export default function UserShow() {
 
   // State
 
-  // 本画面で表示する対象ユーザー
-  // null: ログインしているユーザー自身の場合nullとなる
-  const [user, setUser] = useState<User>(null)
+  const [user, setUser] = useState<User>(null) // 本画面で表示する対象ユーザー。 null: ログインしているユーザー自身の場合nullとなる。
   const [body, setBody] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [articles, setArticles] = useState<Article[]>([])
   const [tags, setTags] = useState<Tag[]>([])
-  const [tagItems, setTagItems] = useState<ItemObject[]>([])
+  const [tagItems, setTagItems] = useState<ItemObject[]>([]) // タグ入力欄のオートコンプリート用のデータ
   const [selectedTagItems, setSelectedTagItems] = useState<ItemObject[]>([])
 
   const [isPaginationFinished, setIsPaginationFinished] = useState(false)
@@ -160,17 +158,13 @@ export default function UserShow() {
       article.id = doc.id
 
       // tagの設定
-      article.tags = new Map(Object.entries(article.tags))
-      for (const [key, value] of article.tags) {
-        console.log(key, article.tags[key])
-        if (value) {
-          const displayName = tags.find((tag) => tag.id === key).name
-          if (article.displayTags === undefined) {
-            article.displayTags = []
-          }
-          article.displayTags.push(displayName)
+      article.tags.forEach((tagID) => {
+        const displayName = tags.find((tag) => tag.id === tagID).name
+        if (article.displayTags === undefined) {
+          article.displayTags = []
         }
-      }
+        article.displayTags.push(displayName)
+      })
 
       return article
     })
