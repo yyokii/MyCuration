@@ -18,18 +18,17 @@ export default function Onboarding() {
 
   async function onSubmitItem(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const db = firestore
-    const userNamesCollection = collection(db, 'userNames')
+    const userNamesCollection = collection(firestore, 'userNames')
 
     // ユーザーIDの重複チェック
-    const userNameDocRef = doc(db, `userNames`, userName)
+    const userNameDocRef = doc(firestore, `userNames`, userName)
     const useNameSnapshot = await getDoc(userNameDocRef)
     if (useNameSnapshot.exists()) {
       console.log('名前が重複しています')
       return
     }
 
-    const userRef = doc(collection(db, 'users'), currentUser.uid)
+    const userRef = doc(collection(firestore, 'users'), currentUser.uid)
     const userNamesRef = doc(userNamesCollection, userName)
 
     const user: User = {
@@ -40,7 +39,7 @@ export default function Onboarding() {
     }
     setUser(user)
     setIsSending(true)
-    await runTransaction(db, async (transaction) => {
+    await runTransaction(firestore, async (transaction) => {
       transaction.set(userRef, user)
       transaction.set(userNamesRef, {
         uid: currentUser.uid,
