@@ -14,4 +14,4 @@
 ## エラーや警告
 
 - [[SSR][NextJS] Duplicate atom key during development and during production build in nextjs](https://github.com/facebookexperimental/Recoil/issues/733)
-  - Recoil の問題で、HMR 環境の場合でエラーがが生じている
+  - Recoil の問題で、HMR 環境の場合でエラーが生じている
