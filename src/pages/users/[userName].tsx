@@ -2,7 +2,6 @@ import { useRouter } from 'next/router'
 import { User } from '../../types/User'
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import {
-  addDoc,
   collection,
   doc,
   getDoc,
@@ -16,6 +15,7 @@ import {
   QuerySnapshot,
   startAfter,
   deleteDoc,
+  runTransaction,
 } from 'firebase/firestore'
 import Layout from '../../components/Layout'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
@@ -158,13 +158,13 @@ export default function UserShow() {
       article.id = doc.id
 
       // tagの設定
-      article.tags.forEach((tagID) => {
-        const displayName = tags.find((tag) => tag.id === tagID).name
-        if (article.displayTags === undefined) {
-          article.displayTags = []
-        }
-        article.displayTags.push(displayName)
-      })
+      article.displayTags = []
+      if (article.tags.length > 0) {
+        article.tags.forEach((tagID) => {
+          const displayName = tags.find((tag) => tag.id === tagID).name
+          article.displayTags.push(displayName)
+        })
+      }
 
       return article
     })
@@ -211,18 +211,49 @@ export default function UserShow() {
   async function onSubmitItem(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
-    const db = getFirestore()
-
     setIsSending(true)
-    await addDoc(collection(db, `users/${currentUser.uid}/articles`), {
-      category: '',
+
+    const articleRef = doc(collection(firestore, `users/${currentUser.uid}/articles`))
+    const articleTags = selectedTagItems.map((item) => item.value)
+    const article = {
       comment: '',
       contentURL: body,
       createdAt: serverTimestamp(),
+      tags: articleTags,
       updatedAt: serverTimestamp(),
+    }
+
+    await runTransaction(firestore, async (transaction) => {
+      var tags: Tag[] = []
+
+      await Promise.all(
+        articleTags.map(async (tagID) => {
+          const tagRef = doc(collection(firestore, `tags`), tagID)
+          const tag = await transaction.get(tagRef)
+          const tagData = tag.data() as Tag
+          tagData.id = tag.id
+          tags.push(tagData)
+        }),
+      )
+
+      await Promise.all(
+        tags.map(async (tag) => {
+          const tagRef = doc(collection(firestore, `tags`), tag.id)
+          transaction.update(tagRef, {
+            count: tag.count + 1,
+          })
+        }),
+      )
+
+      transaction.set(articleRef, article)
+    }).catch((error) => {
+      // TODO: エラー処理
+      console.log(error)
     })
+
     setIsSending(false)
     setBody('')
+    setSelectedTagItems([])
     toast.success('追加しました。', {
       position: 'bottom-left',
       autoClose: 5000,
