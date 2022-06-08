@@ -23,9 +23,8 @@ export default function Item(props: Props) {
           <VStack>
             <div className='text-truncate'>{props.article.contentURL}</div>
             <HStack>
-              {props.article.displayTags.map((tag) => (
-                <Box key={tag}>{tag}</Box>
-              ))}
+              {props.article.displayTags.length > 0 &&
+                props.article.displayTags.map((tag) => <Box key={tag}>{tag}</Box>)}
             </HStack>
           </VStack>
           <div className='text-muted text-end'>
