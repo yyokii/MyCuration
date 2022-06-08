@@ -6,7 +6,7 @@ type Props = {
 export default function TwitterShareButton(props: Props) {
   const url = `https://twitter.com/share?url=${encodeURIComponent(
     props.url,
-  )}&text=${encodeURIComponent(props.text)}&hashtags=MyQuestionService`
+  )}&text=${encodeURIComponent(props.text)}&hashtags=MyService`
 
   return (
     <a href={url} className='twitter-share-button' target='_blank' rel='noreferrer'>

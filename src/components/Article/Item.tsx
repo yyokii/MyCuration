@@ -1,5 +1,5 @@
+import { Box, HStack, VStack } from '@chakra-ui/react'
 import dayjs from 'dayjs'
-import { useState } from 'react'
 import { Article } from '../../types/Article'
 
 type Props = {
@@ -17,20 +17,19 @@ export default function Item(props: Props) {
             <div className='m-1 text-end' onClick={() => props.onClickDelete(props.article)}>
               <i className='material-icons'>delete</i>
             </div>
-            {/* <div className='m-1 text-end' onClick={() => props.onClickUpdate(props.article)}>
-              <i className='material-icons'>edit</i>
-            </div> */}
           </div>
         )}
         <div>
-          <a>
-            <div className='card-body'>
-              <div className='text-truncate'>{props.article.contentURL}</div>
-            </div>
-            <div className='text-muted text-end'>
-              <small>{dayjs(props.article.createdAt.toDate()).format('YYYY/MM/DD HH:mm')}</small>
-            </div>
-          </a>
+          <VStack>
+            <div className='text-truncate'>{props.article.contentURL}</div>
+            <HStack>
+              {props.article.displayTags.length > 0 &&
+                props.article.displayTags.map((tag) => <Box key={tag}>{tag}</Box>)}
+            </HStack>
+          </VStack>
+          <div className='text-muted text-end'>
+            <small>{dayjs(props.article.createdAt.toDate()).format('YYYY/MM/DD HH:mm')}</small>
+          </div>
         </div>
       </div>
     </div>
