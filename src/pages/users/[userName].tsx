@@ -5,7 +5,6 @@ import {
   collection,
   doc,
   getDoc,
-  getFirestore,
   serverTimestamp,
   DocumentData,
   getDocs,
@@ -14,7 +13,6 @@ import {
   query,
   QuerySnapshot,
   startAfter,
-  deleteDoc,
   runTransaction,
 } from 'firebase/firestore'
 import Layout from '../../components/Layout'
@@ -224,17 +222,24 @@ export default function UserShow() {
     }
 
     await runTransaction(firestore, async (transaction) => {
-      var tags: Tag[] = []
+      // ユーザー情報を取得
+      const userRef = doc(collection(firestore, `users`), currentUser.uid)
+      const userSnapShot = await transaction.get(userRef)
+      const user = userSnapShot.data() as User
 
+      // 設定するタグの情報を取得
+      var tags: Tag[] = []
       await Promise.all(
         articleTags.map(async (tagID) => {
           const tagRef = doc(collection(firestore, `tags`), tagID)
-          const tag = await transaction.get(tagRef)
-          const tagData = tag.data() as Tag
-          tagData.id = tag.id
-          tags.push(tagData)
+          const tagSnapShot = await transaction.get(tagRef)
+          const tag = tagSnapShot.data() as Tag
+          tag.id = tagSnapShot.id
+          tags.push(tag)
         }),
       )
+
+      // ユーザーの投稿数、タグの利用回数、記事、の書き込み処理を行う
 
       await Promise.all(
         tags.map(async (tag) => {
@@ -244,6 +249,10 @@ export default function UserShow() {
           })
         }),
       )
+
+      transaction.update(userRef, {
+        articlesCount: user.articlesCount + 1,
+      })
 
       transaction.set(articleRef, article)
     }).catch((error) => {
@@ -298,8 +307,21 @@ export default function UserShow() {
       return
     }
 
-    const db = getFirestore()
-    await deleteDoc(doc(db, `users/${currentUser.uid}/articles`, article.id))
+    await runTransaction(firestore, async (transaction) => {
+      const userRef = doc(collection(firestore, `users`), currentUser.uid)
+      const userSnapShot = await transaction.get(userRef)
+      const user = userSnapShot.data() as User
+
+      transaction.delete(
+        doc(collection(firestore, `users/${currentUser.uid}/articles`), article.id),
+      )
+      transaction.update(userRef, {
+        articlesCount: user.articlesCount - 1,
+      })
+    }).catch((error) => {
+      // TODO: エラー処理
+      console.log(error)
+    })
 
     loadArticles(currentUser.uid, tags, true)
   }
