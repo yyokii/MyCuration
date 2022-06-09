@@ -36,6 +36,7 @@ export default function Onboarding() {
       isFinishedRegisterUserInfo: true,
       name: userName,
       profileImageURL: currentUser.profileImageURL,
+      articlesCount: 0,
     }
     setUser(user)
     setIsSending(true)

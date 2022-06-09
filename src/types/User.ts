@@ -3,4 +3,5 @@ export interface User {
   isFinishedRegisterUserInfo: boolean
   name: string
   profileImageURL: string
+  articlesCount: number
 }
