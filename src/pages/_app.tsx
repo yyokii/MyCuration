@@ -45,6 +45,7 @@ function AppInit() {
             isFinishedRegisterUserInfo: isRegisterd,
             name: ``,
             profileImageURL: googleProviderData.photoURL,
+            articlesCount: 0,
           }
           if (router.isReady) {
             router.push('/onboarding')
