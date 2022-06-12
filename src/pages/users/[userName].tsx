@@ -326,7 +326,7 @@ export default function UserShow() {
     loadArticles(currentUser.uid, tags, true)
   }
 
-  function onOpennUpdateArticleMpdal(article: Article) {
+  function onOpennUpdateArticleModal(article: Article) {
     setSelectedArticle(article)
     onOpen()
   }
@@ -412,8 +412,8 @@ export default function UserShow() {
                     article={article}
                     isCurrentUser={user === null}
                     onClickDelete={(article) => onClickDelete(article)}
+                    onClickUpdae={() => onOpennUpdateArticleModal(article)}
                   ></Item>
-                  <Button onClick={() => onOpennUpdateArticleMpdal(article)}>Open Modal</Button>
                 </div>
               ))}
             </Box>
