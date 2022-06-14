@@ -35,7 +35,7 @@ import {
   useDisclosure,
   VStack,
 } from '@chakra-ui/react'
-import { UpdateArticleModal } from '../../components/Dialog/UpdateArticleModal'
+import { UpdateArticleModal } from '../../components/Modal/UpdateArticleModal'
 import { Tag } from '../../types/Tag'
 import AutoComplete from '../../components/AutoComplete'
 import { Item as ItemObject } from 'chakra-ui-autocomplete'
