@@ -14,6 +14,7 @@ import {
   QuerySnapshot,
   startAfter,
   runTransaction,
+  updateDoc,
 } from 'firebase/firestore'
 import Layout from '../../components/Layout'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
@@ -46,7 +47,7 @@ type Query = {
 
 export default function UserShow() {
   const { currentUser } = useCurrentUser()
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const { isOpen, onOpen, onClose } = useDisclosure() // TODO: isOpenUpdateArticleModalとかの方がいいかも
 
   // State
 
@@ -292,6 +293,17 @@ export default function UserShow() {
     loadArticles(currentUser.uid, tags, true)
   }
 
+  async function onUpdateItem(url: string, comment: string) {
+    setIsSending(true)
+    const docRef = doc(firestore, `users/${currentUser.uid}/articles`, selectedArticle.id)
+    await updateDoc(docRef, {
+      contentURL: url,
+      comment: comment,
+    })
+    setIsSending(false)
+    setSelectedArticle(undefined)
+  }
+
   function onScroll() {
     if (isPaginationFinished) {
       return
@@ -456,6 +468,10 @@ export default function UserShow() {
             article={selectedArticle}
             isOpen={isOpen}
             onClose={() => onCloseUpdateArticleMpdal()}
+            onUpdate={function (url: string, comment: string): void {
+              onUpdateItem(url, comment)
+              onCloseUpdateArticleMpdal()
+            }}
           />
         </Box>
       )}
