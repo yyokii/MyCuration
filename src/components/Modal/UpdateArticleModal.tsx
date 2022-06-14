@@ -12,7 +12,7 @@ import {
   ModalOverlay,
 } from '@chakra-ui/react'
 import { updateDoc, doc } from 'firebase/firestore'
-import { FormEvent, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { firestore } from '../../lib/firebase'
 import { Article } from '../../types/Article'
