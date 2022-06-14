@@ -25,8 +25,8 @@ export default function Item(props: Props) {
   return (
     <Center py={6}>
       <Box
-        maxW={'445px'}
-        w={'full'}
+        maxW={'400px'}
+        w={'250px'}
         bg={useColorModeValue('white', 'gray.900')}
         boxShadow={'2xl'}
         rounded={'md'}

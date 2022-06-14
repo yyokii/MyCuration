@@ -23,7 +23,7 @@ import { firestore } from '../../lib/firebase'
 import { UserID } from '../../types/UserID'
 import Image from 'next/image'
 import Item from '../../components/Article/Item'
-import { Box, Button, StackDivider, useDisclosure, VStack } from '@chakra-ui/react'
+import { Box, Button, SimpleGrid, StackDivider, useDisclosure, VStack } from '@chakra-ui/react'
 import { UpdateArticleModal } from '../../components/Dialog/UpdateArticleModal'
 import { Tag } from '../../types/Tag'
 import AutoComplete from '../../components/AutoComplete'
@@ -406,16 +406,18 @@ export default function UserShow() {
           {/* 記事一覧 */}
           <VStack divider={<StackDivider borderColor='gray.200' />} spacing={4} align='center'>
             <Box className='col-12' ref={scrollContainerRef}>
-              {articles.map((article) => (
-                <div key={article.id}>
-                  <Item
-                    article={article}
-                    isCurrentUser={user === null}
-                    onClickDelete={(article) => onClickDelete(article)}
-                    onClickUpdae={() => onOpennUpdateArticleModal(article)}
-                  ></Item>
-                </div>
-              ))}
+              <SimpleGrid columns={{ sm: 2, md: 3 }} spacing='40px'>
+                {articles.map((article) => (
+                  <div key={article.id}>
+                    <Item
+                      article={article}
+                      isCurrentUser={user === null}
+                      onClickDelete={(article) => onClickDelete(article)}
+                      onClickUpdae={() => onOpennUpdateArticleModal(article)}
+                    ></Item>
+                  </div>
+                ))}
+              </SimpleGrid>
             </Box>
           </VStack>
           <UpdateArticleModal
