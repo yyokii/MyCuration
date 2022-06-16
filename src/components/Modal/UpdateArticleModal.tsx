@@ -11,42 +11,32 @@ import {
   ModalHeader,
   ModalOverlay,
 } from '@chakra-ui/react'
-import { updateDoc, doc } from 'firebase/firestore'
-import { FormEvent, useEffect, useRef, useState } from 'react'
-import { useCurrentUser } from '../../hooks/useCurrentUser'
-import { firestore } from '../../lib/firebase'
+import { useEffect, useRef, useState } from 'react'
 import { Article } from '../../types/Article'
 
 type Props = {
   article: Article
   isOpen: boolean
+  onUpdate: (url: string, comment: string) => void
   onClose: () => void
 }
 
 export function UpdateArticleModal(props: Props) {
   const initialRef = useRef()
-  const { currentUser } = useCurrentUser()
   const [contentURL, setContentURL] = useState('')
   const [comment, setComment] = useState('')
 
-  const [isSending, setIsSending] = useState(false)
-
   useEffect(() => {
-    if (props.article !== null) {
+    if (props.article !== null && props.article !== undefined) {
       setContentURL(props.article.contentURL)
       setComment(props.article.comment)
     }
   }, [props])
 
-  // TODO: 親が指定するようにする
   async function onUpdateItem() {
-    setIsSending(true)
-    const docRef = doc(firestore, `users/${currentUser.uid}/articles`, props.article.id)
-    await updateDoc(docRef, {
-      contentURL: contentURL,
-      comment: comment,
-    })
-    setIsSending(false)
+    props.onUpdate(contentURL, comment)
+    setContentURL('')
+    setComment('')
     props.onClose()
   }
 
@@ -55,7 +45,7 @@ export function UpdateArticleModal(props: Props) {
       <Modal initialFocusRef={initialRef} isOpen={props.isOpen} onClose={props.onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Create your account</ModalHeader>
+          <ModalHeader>Update Article</ModalHeader>
           <ModalCloseButton />
           {props.article && (
             <ModalBody pb={6}>
@@ -80,7 +70,7 @@ export function UpdateArticleModal(props: Props) {
             </ModalBody>
           )}
           <ModalFooter>
-            <Button colorScheme='blue' mr={3} onClick={() => onUpdateItem()}>
+            <Button colorScheme='blue' mr={3} onClick={onUpdateItem}>
               Save
             </Button>
             <Button onClick={props.onClose}>Cancel</Button>

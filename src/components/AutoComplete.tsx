@@ -11,7 +11,7 @@ type Props = {
 
 export default function AutoComplete<T>(props: Props) {
   return (
-    <Box px={8} py={4}>
+    <Box>
       <CUIAutoComplete
         label={props.label}
         placeholder={props.placeholder}
