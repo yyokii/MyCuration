@@ -35,6 +35,9 @@ export function UpdateArticleModal(props: Props) {
 
   async function onUpdateItem() {
     props.onUpdate(contentURL, comment)
+    setContentURL('')
+    setComment('')
+    props.onClose()
   }
 
   return (
@@ -42,7 +45,7 @@ export function UpdateArticleModal(props: Props) {
       <Modal initialFocusRef={initialRef} isOpen={props.isOpen} onClose={props.onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Create your account</ModalHeader>
+          <ModalHeader>Update Article</ModalHeader>
           <ModalCloseButton />
           {props.article && (
             <ModalBody pb={6}>

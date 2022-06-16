@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import { User } from '../../types/User'
-import { FormEvent, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   collection,
   doc,
@@ -24,22 +24,11 @@ import { firestore } from '../../lib/firebase'
 import { UserID } from '../../types/UserID'
 import Image from 'next/image'
 import Item from '../../components/Article/Item'
-import {
-  Box,
-  FormControl,
-  FormErrorMessage,
-  FormHelperText,
-  FormLabel,
-  Input,
-  SimpleGrid,
-  StackDivider,
-  useDisclosure,
-  VStack,
-} from '@chakra-ui/react'
+import { Box, Button, SimpleGrid, StackDivider, useDisclosure, VStack } from '@chakra-ui/react'
 import { UpdateArticleModal } from '../../components/Modal/UpdateArticleModal'
 import { Tag } from '../../types/Tag'
-import AutoComplete from '../../components/AutoComplete'
 import { Item as ItemObject } from 'chakra-ui-autocomplete'
+import { AddArticleModal } from '../../components/Modal/AddArticleModal'
 
 type Query = {
   userName: string
@@ -47,21 +36,25 @@ type Query = {
 
 export default function UserShow() {
   const { currentUser } = useCurrentUser()
-  const { isOpen, onOpen, onClose } = useDisclosure() // TODO: isOpenUpdateArticleModalとかの方がいいかも
+  const {
+    isOpen: isOpenUpdateArticleModal,
+    onOpen: onOpenUpdateArticleModal,
+    onClose: onCloseUpdateArticleModal,
+  } = useDisclosure()
+  const {
+    isOpen: isOpenAddArticleModal,
+    onOpen: onOpenAddArticleModal,
+    onClose: onCloseAddArticleModal,
+  } = useDisclosure()
 
   // State
 
   const [user, setUser] = useState<User>(null) // 本画面で表示する対象ユーザー。 null: ログインしているユーザー自身の場合nullとなる。
 
-  const [body, setBody] = useState('')
-  const [comment, setComment] = useState('')
-  const isInputError = body === ''
-
   const [isSending, setIsSending] = useState(false)
   const [articles, setArticles] = useState<Article[]>([])
   const [tags, setTags] = useState<Tag[]>([])
   const [tagItems, setTagItems] = useState<ItemObject[]>([]) // タグ入力欄のオートコンプリート用のデータ
-  const [selectedTagItems, setSelectedTagItems] = useState<ItemObject[]>([])
 
   const [isPaginationFinished, setIsPaginationFinished] = useState(false)
   const [selectedArticle, setSelectedArticle] = useState<Article>(null)
@@ -222,16 +215,14 @@ export default function UserShow() {
 
   // Actions
 
-  async function onSubmitItem(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-
+  async function onSubmitItem(url: string, comment: string, selectedTags: ItemObject[]) {
     setIsSending(true)
 
     const articleRef = doc(collection(firestore, `users/${currentUser.uid}/articles`))
-    const articleTags = selectedTagItems.map((item) => item.value)
+    const articleTags = selectedTags.map((item) => item.value)
     const article = {
       comment: '',
-      contentURL: body,
+      contentURL: url,
       createdAt: serverTimestamp(),
       tags: articleTags,
       updatedAt: serverTimestamp(),
@@ -277,9 +268,6 @@ export default function UserShow() {
     })
 
     setIsSending(false)
-    setBody('')
-    setComment('')
-    setSelectedTagItems([])
     toast.success('追加しました。', {
       position: 'bottom-left',
       autoClose: 5000,
@@ -289,8 +277,6 @@ export default function UserShow() {
       draggable: true,
       progress: undefined,
     })
-
-    loadArticles(currentUser.uid, tags, true)
   }
 
   async function onUpdateItem(url: string, comment: string) {
@@ -302,6 +288,7 @@ export default function UserShow() {
     })
     setIsSending(false)
     setSelectedArticle(undefined)
+    console.log('finish onUpdateItem')
   }
 
   function onScroll() {
@@ -356,21 +343,16 @@ export default function UserShow() {
 
   function onOpennUpdateArticleModal(article: Article) {
     setSelectedArticle(article)
-    onOpen()
+    onOpenUpdateArticleModal()
   }
 
-  function onCloseUpdateArticleMpdal() {
-    onClose()
-    if (queryPath.userName === currentUser.name) {
-      loadArticles(currentUser.uid, tags, true)
-    }
-  }
-
-  const handleSelectedItemsChange = (selectedItems) => {
-    if (selectedItems) {
-      setSelectedTagItems(selectedItems)
-    }
-  }
+  // function onCloseUpdateArticleMpdal() {
+  //   onCloseUpdateArticleModal()
+  //   // TODO: これいる？
+  //   if (queryPath.userName === currentUser.name) {
+  //     loadArticles(currentUser.uid, tags, true)
+  //   }
+  // }
 
   return (
     <Layout>
@@ -393,50 +375,9 @@ export default function UserShow() {
                   />
                   <h1 className='h4'>{currentUser.name}のページ</h1>
                 </section>
-                <form onSubmit={onSubmitItem}>
-                  <FormControl>
-                    <FormLabel htmlFor='url'>URL</FormLabel>
-                    <Input
-                      id='url'
-                      placeholder='URL'
-                      value={body}
-                      onChange={(e) => setBody(e.target.value)}
-                      required
-                    />
-                    {!isInputError ? (
-                      <FormHelperText>URLを入力してください。</FormHelperText>
-                    ) : (
-                      <FormErrorMessage>URLは必須です。</FormErrorMessage>
-                    )}
-
-                    <FormLabel htmlFor='comment'>コメント</FormLabel>
-                    <Input
-                      id='comment'
-                      placeholder='記事に対するコメントを入力してください'
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      required
-                    />
-                  </FormControl>
-                  <AutoComplete
-                    label='Select tags'
-                    placeholder='Type a tag'
-                    items={tagItems}
-                    selectedItems={selectedTagItems}
-                    handleSelectedItemsChange={(value) => handleSelectedItemsChange(value)}
-                  />
-                  <div className='m-3'>
-                    {isSending ? (
-                      <div className='spinner-border text-secondary' role='status'>
-                        <span className='visually-hidden'>Loading...</span>
-                      </div>
-                    ) : (
-                      <button type='submit' className='btn btn-primary'>
-                        追加する
-                      </button>
-                    )}
-                  </div>
-                </form>
+                <Button colorScheme='teal' onClick={onOpenAddArticleModal}>
+                  Add Article
+                </Button>
               </div>
             ) : (
               /**
@@ -466,12 +407,25 @@ export default function UserShow() {
           </VStack>
           <UpdateArticleModal
             article={selectedArticle}
-            isOpen={isOpen}
-            onClose={() => onCloseUpdateArticleMpdal()}
-            onUpdate={function (url: string, comment: string): void {
-              onUpdateItem(url, comment)
-              onCloseUpdateArticleMpdal()
+            isOpen={isOpenUpdateArticleModal}
+            onClose={onCloseUpdateArticleModal}
+            onUpdate={async function (url: string, comment: string): Promise<void> {
+              await onUpdateItem(url, comment)
+              loadArticles(currentUser.uid, tags, true)
             }}
+          />
+          <AddArticleModal
+            isOpen={isOpenAddArticleModal}
+            tagItems={tagItems}
+            onSubmit={async function (
+              url: string,
+              comment: string,
+              selectedTags: ItemObject[],
+            ): Promise<void> {
+              await onSubmitItem(url, comment, selectedTags)
+              loadArticles(currentUser.uid, tags, true)
+            }}
+            onClose={onCloseAddArticleModal}
           />
         </Box>
       )}
