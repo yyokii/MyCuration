@@ -327,12 +327,36 @@ export default function UserShow() {
       const userSnapShot = await transaction.get(userRef)
       const user = userSnapShot.data() as User
 
+      // 設定されているタグの情報を取得
+      var tags: Tag[] = []
+      await Promise.all(
+        article.tags.map(async (tagID) => {
+          const tagRef = doc(collection(firestore, `tags`), tagID)
+          const tagSnapShot = await transaction.get(tagRef)
+          const tag = tagSnapShot.data() as Tag
+          tag.id = tagSnapShot.id
+          tags.push(tag)
+        }),
+      )
+
+      // ユーザーの投稿数、タグの利用回数、記事、の書き込み処理を行う
+
       transaction.delete(
         doc(collection(firestore, `users/${currentUser.uid}/articles`), article.id),
       )
+
       transaction.update(userRef, {
         articlesCount: user.articlesCount - 1,
       })
+
+      await Promise.all(
+        tags.map(async (tag) => {
+          const tagRef = doc(collection(firestore, `tags`), tag.id)
+          transaction.update(tagRef, {
+            count: tag.count - 1,
+          })
+        }),
+      )
     }).catch((error) => {
       // TODO: エラー処理
       console.log(error)
