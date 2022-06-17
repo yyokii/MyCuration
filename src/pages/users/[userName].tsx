@@ -346,14 +346,6 @@ export default function UserShow() {
     onOpenUpdateArticleModal()
   }
 
-  // function onCloseUpdateArticleMpdal() {
-  //   onCloseUpdateArticleModal()
-  //   // TODO: これいる？
-  //   if (queryPath.userName === currentUser.name) {
-  //     loadArticles(currentUser.uid, tags, true)
-  //   }
-  // }
-
   return (
     <Layout>
       {currentUser && (
