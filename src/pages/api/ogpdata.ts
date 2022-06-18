@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import axios from 'axios'
 import { JSDOM } from 'jsdom'
+import { sendErrorResponse } from '../../utils/api/sendErrorResponse'
 
 /**
  *
@@ -52,8 +53,4 @@ function extractOgp(metaElements: HTMLMetaElement[]): object {
     }, {})
 
   return ogp
-}
-
-function sendErrorResponse(response: NextApiResponse, message: string): void {
-  response.status(400).send(message)
 }
