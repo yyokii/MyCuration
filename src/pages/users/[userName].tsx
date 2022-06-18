@@ -22,13 +22,25 @@ import { toast } from 'react-toastify'
 import { Article } from '../../types/Article'
 import { firestore } from '../../lib/firebase'
 import { UserID } from '../../types/UserID'
-import Image from 'next/image'
 import Item from '../../components/Article/Item'
-import { Box, Button, SimpleGrid, StackDivider, useDisclosure, VStack } from '@chakra-ui/react'
+import {
+  Box,
+  Button,
+  Image,
+  SimpleGrid,
+  StackDivider,
+  Text,
+  useDisclosure,
+  VStack,
+} from '@chakra-ui/react'
 import { UpdateArticleModal } from '../../components/Modal/UpdateArticleModal'
 import { Tag } from '../../types/Tag'
 import { Item as ItemObject } from 'chakra-ui-autocomplete'
 import { AddArticleModal } from '../../components/Modal/AddArticleModal'
+import { SimpleModal } from '../../components/Modal/SimpleModal'
+import { useSetRecoilState } from 'recoil'
+import { userState } from '../../states/user'
+import { fetchUser } from '../../lib/firebase-auth'
 
 type Query = {
   userName: string
@@ -36,6 +48,13 @@ type Query = {
 
 export default function UserShow() {
   const { currentUser } = useCurrentUser()
+  const setSigninUser = useSetRecoilState(userState)
+
+  const scrollContainerRef = useRef(null)
+  const router = useRouter()
+  const queryPath = router.query as Query
+
+  // モーダルの表示管理
   const {
     isOpen: isOpenUpdateArticleModal,
     onOpen: onOpenUpdateArticleModal,
@@ -45,6 +64,11 @@ export default function UserShow() {
     isOpen: isOpenAddArticleModal,
     onOpen: onOpenAddArticleModal,
     onClose: onCloseAddArticleModal,
+  } = useDisclosure()
+  const {
+    isOpen: isOpenConfirmDeleteModal,
+    onOpen: onOpenConfirmDeleteModal,
+    onClose: onCloseConfirmDeleteModal,
   } = useDisclosure()
 
   // State
@@ -58,10 +82,6 @@ export default function UserShow() {
 
   const [isPaginationFinished, setIsPaginationFinished] = useState(false)
   const [selectedArticle, setSelectedArticle] = useState<Article>(null)
-
-  const scrollContainerRef = useRef(null)
-  const router = useRouter()
-  const queryPath = router.query as Query
 
   // Effect
 
@@ -80,7 +100,7 @@ export default function UserShow() {
       if (queryPath.userName === currentUser.name) {
         // 自分のページ
         setUser(null)
-        loadArticles(currentUser.uid, tags)
+        loadArticles(currentUser.uid, tags, true)
       } else {
         // 他のユーザー
         const user = await loadUser()
@@ -88,7 +108,7 @@ export default function UserShow() {
           // TODO: 対象ユーザーが存在しない場合のページ表示
           console.log('ユーザーが存在しません')
         } else {
-          loadArticles(user.uid, tags)
+          loadArticles(user.uid, tags, true)
         }
       }
     })()
@@ -213,6 +233,11 @@ export default function UserShow() {
     return fetchedTags
   }
 
+  async function updateSigninUser() {
+    let user = await fetchUser(currentUser.uid)
+    setSigninUser(user)
+  }
+
   // Actions
 
   async function onSubmitItem(url: string, comment: string, selectedTags: ItemObject[]) {
@@ -291,6 +316,53 @@ export default function UserShow() {
     console.log('finish onUpdateItem')
   }
 
+  async function onClickDelete(article: Article) {
+    if (user !== null) {
+      // 他のユーザー情報を保持している場合
+      return
+    }
+
+    await runTransaction(firestore, async (transaction) => {
+      const userRef = doc(collection(firestore, `users`), currentUser.uid)
+      const userSnapShot = await transaction.get(userRef)
+      const user = userSnapShot.data() as User
+
+      // 設定されているタグの情報を取得
+      var tags: Tag[] = []
+      await Promise.all(
+        article.tags.map(async (tagID) => {
+          const tagRef = doc(collection(firestore, `tags`), tagID)
+          const tagSnapShot = await transaction.get(tagRef)
+          const tag = tagSnapShot.data() as Tag
+          tag.id = tagSnapShot.id
+          tags.push(tag)
+        }),
+      )
+
+      // ユーザーの投稿数、タグの利用回数、記事、の書き込み処理を行う
+
+      transaction.delete(
+        doc(collection(firestore, `users/${currentUser.uid}/articles`), article.id),
+      )
+
+      transaction.update(userRef, {
+        articlesCount: user.articlesCount - 1,
+      })
+
+      await Promise.all(
+        tags.map(async (tag) => {
+          const tagRef = doc(collection(firestore, `tags`), tag.id)
+          transaction.update(tagRef, {
+            count: tag.count - 1,
+          })
+        }),
+      )
+    }).catch((error) => {
+      // TODO: エラー処理
+      console.log(error)
+    })
+  }
+
   function onScroll() {
     if (isPaginationFinished) {
       return
@@ -316,77 +388,31 @@ export default function UserShow() {
     loadNextArticles(targetuid)
   }
 
-  async function onClickDelete(article: Article) {
-    if (user !== null) {
-      // 他のユーザー情報を保持している場合
-      return
-    }
-
-    await runTransaction(firestore, async (transaction) => {
-      const userRef = doc(collection(firestore, `users`), currentUser.uid)
-      const userSnapShot = await transaction.get(userRef)
-      const user = userSnapShot.data() as User
-
-      transaction.delete(
-        doc(collection(firestore, `users/${currentUser.uid}/articles`), article.id),
-      )
-      transaction.update(userRef, {
-        articlesCount: user.articlesCount - 1,
-      })
-    }).catch((error) => {
-      // TODO: エラー処理
-      console.log(error)
-    })
-
-    loadArticles(currentUser.uid, tags, true)
-  }
-
-  function onOpennUpdateArticleModal(article: Article) {
-    setSelectedArticle(article)
-    onOpenUpdateArticleModal()
-  }
-
-  // function onCloseUpdateArticleMpdal() {
-  //   onCloseUpdateArticleModal()
-  //   // TODO: これいる？
-  //   if (queryPath.userName === currentUser.name) {
-  //     loadArticles(currentUser.uid, tags, true)
-  //   }
-  // }
-
   return (
     <Layout>
       {currentUser && (
         <Box>
           <VStack divider={<StackDivider borderColor='gray.200' />} spacing={4} align='center'>
-            {user === null ? (
-              /**
-               * 自分のページ
-               *
-               * 投稿内容閲覧、追加、編集、削除が可能であるページ
-               */
-              <div>
-                <section className='text-center'>
-                  <Image
-                    src={currentUser.profileImageURL}
-                    width={100}
-                    height={100}
-                    alt='display name'
-                  />
-                  <h1 className='h4'>{currentUser.name}のページ</h1>
-                </section>
+            <div>
+              <section className='text-center'>
+                <Image
+                  borderRadius='full'
+                  src={user === null ? currentUser.profileImageURL : user.profileImageURL}
+                  width={100}
+                  height={100}
+                  alt='user icon'
+                />
+                <h1 className='h4'>{user === null ? currentUser.name : user.name}のページ</h1>
+                <Text>
+                  (記事数) {user === null ? currentUser.articlesCount : user.articlesCount}
+                </Text>
+              </section>
+              {user === null && (
                 <Button colorScheme='teal' onClick={onOpenAddArticleModal}>
                   Add Article
                 </Button>
-              </div>
-            ) : (
-              /**
-               * 他のアカウントのページ
-               *
-               * 投稿内容閲覧が可能であるページ
-               */
-              <div>（仮）他の人のページです</div>
-            )}
+              )}
+            </div>
           </VStack>
           {/* 記事一覧 */}
           <VStack divider={<StackDivider borderColor='gray.200' />} spacing={4} align='center'>
@@ -397,19 +423,38 @@ export default function UserShow() {
                     <Item
                       article={article}
                       isCurrentUser={user === null}
-                      onClickDelete={(article) => onClickDelete(article)}
-                      onClickUpdae={() => onOpennUpdateArticleModal(article)}
+                      onClickDelete={(article) => {
+                        setSelectedArticle(article)
+                        onOpenConfirmDeleteModal()
+                      }}
+                      onClickUpdae={() => {
+                        setSelectedArticle(article)
+                        onOpenUpdateArticleModal()
+                      }}
                     ></Item>
                   </div>
                 ))}
               </SimpleGrid>
             </Box>
           </VStack>
+          {selectedArticle !== null && (
+            <SimpleModal
+              title={'この記事を削除しますか？'}
+              message={`URL: ${selectedArticle.contentURL}`}
+              isOpen={isOpenConfirmDeleteModal}
+              onPositiveAction={async () => {
+                await onClickDelete(selectedArticle)
+                loadArticles(currentUser.uid, tags, true)
+                updateSigninUser()
+              }}
+              onClose={onCloseConfirmDeleteModal}
+            />
+          )}
           <UpdateArticleModal
             article={selectedArticle}
             isOpen={isOpenUpdateArticleModal}
             onClose={onCloseUpdateArticleModal}
-            onUpdate={async function (url: string, comment: string): Promise<void> {
+            onUpdate={async (url: string, comment: string): Promise<void> => {
               await onUpdateItem(url, comment)
               loadArticles(currentUser.uid, tags, true)
             }}
@@ -417,13 +462,14 @@ export default function UserShow() {
           <AddArticleModal
             isOpen={isOpenAddArticleModal}
             tagItems={tagItems}
-            onSubmit={async function (
+            onSubmit={async (
               url: string,
               comment: string,
               selectedTags: ItemObject[],
-            ): Promise<void> {
+            ): Promise<void> => {
               await onSubmitItem(url, comment, selectedTags)
               loadArticles(currentUser.uid, tags, true)
+              updateSigninUser()
             }}
             onClose={onCloseAddArticleModal}
           />
