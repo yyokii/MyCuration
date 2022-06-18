@@ -418,7 +418,7 @@ export default function UserShow() {
                         setSelectedArticle(article)
                         onOpenConfirmDeleteModal()
                       }}
-                      onClickUpdae={function () {
+                      onClickUpdae={() => {
                         setSelectedArticle(article)
                         onOpenUpdateArticleModal()
                       }}
@@ -444,7 +444,7 @@ export default function UserShow() {
             article={selectedArticle}
             isOpen={isOpenUpdateArticleModal}
             onClose={onCloseUpdateArticleModal}
-            onUpdate={async function (url: string, comment: string): Promise<void> {
+            onUpdate={async (url: string, comment: string): Promise<void> => {
               await onUpdateItem(url, comment)
               loadArticles(currentUser.uid, tags, true)
             }}
@@ -452,11 +452,11 @@ export default function UserShow() {
           <AddArticleModal
             isOpen={isOpenAddArticleModal}
             tagItems={tagItems}
-            onSubmit={async function (
+            onSubmit={async (
               url: string,
               comment: string,
               selectedTags: ItemObject[],
-            ): Promise<void> {
+            ): Promise<void> => {
               await onSubmitItem(url, comment, selectedTags)
               loadArticles(currentUser.uid, tags, true)
             }}
