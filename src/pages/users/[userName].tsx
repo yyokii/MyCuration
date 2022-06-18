@@ -22,11 +22,11 @@ import { toast } from 'react-toastify'
 import { Article } from '../../types/Article'
 import { firestore } from '../../lib/firebase'
 import { UserID } from '../../types/UserID'
-import Image from 'next/image'
 import Item from '../../components/Article/Item'
 import {
   Box,
   Button,
+  Image,
   SimpleGrid,
   StackDivider,
   Text,
@@ -396,6 +396,7 @@ export default function UserShow() {
             <div>
               <section className='text-center'>
                 <Image
+                  borderRadius='full'
                   src={user === null ? currentUser.profileImageURL : user.profileImageURL}
                   width={100}
                   height={100}
