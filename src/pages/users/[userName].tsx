@@ -24,11 +24,20 @@ import { firestore } from '../../lib/firebase'
 import { UserID } from '../../types/UserID'
 import Image from 'next/image'
 import Item from '../../components/Article/Item'
-import { Box, Button, SimpleGrid, StackDivider, useDisclosure, VStack } from '@chakra-ui/react'
+import {
+  Box,
+  Button,
+  SimpleGrid,
+  StackDivider,
+  Text,
+  useDisclosure,
+  VStack,
+} from '@chakra-ui/react'
 import { UpdateArticleModal } from '../../components/Modal/UpdateArticleModal'
 import { Tag } from '../../types/Tag'
 import { Item as ItemObject } from 'chakra-ui-autocomplete'
 import { AddArticleModal } from '../../components/Modal/AddArticleModal'
+import { SimpleModal } from '../../components/Modal/SimpleModal'
 
 type Query = {
   userName: string
@@ -36,6 +45,11 @@ type Query = {
 
 export default function UserShow() {
   const { currentUser } = useCurrentUser()
+  const scrollContainerRef = useRef(null)
+  const router = useRouter()
+  const queryPath = router.query as Query
+
+  // モーダルの表示管理
   const {
     isOpen: isOpenUpdateArticleModal,
     onOpen: onOpenUpdateArticleModal,
@@ -45,6 +59,11 @@ export default function UserShow() {
     isOpen: isOpenAddArticleModal,
     onOpen: onOpenAddArticleModal,
     onClose: onCloseAddArticleModal,
+  } = useDisclosure()
+  const {
+    isOpen: isOpenConfirmDeleteModal,
+    onOpen: onOpenConfirmDeleteModal,
+    onClose: onCloseConfirmDeleteModal,
   } = useDisclosure()
 
   // State
@@ -58,10 +77,6 @@ export default function UserShow() {
 
   const [isPaginationFinished, setIsPaginationFinished] = useState(false)
   const [selectedArticle, setSelectedArticle] = useState<Article>(null)
-
-  const scrollContainerRef = useRef(null)
-  const router = useRouter()
-  const queryPath = router.query as Query
 
   // Effect
 
@@ -215,6 +230,8 @@ export default function UserShow() {
 
   // Actions
 
+  // TODO: 追加/削除した後のカウント更新できてない
+
   async function onSubmitItem(url: string, comment: string, selectedTags: ItemObject[]) {
     setIsSending(true)
 
@@ -361,13 +378,6 @@ export default function UserShow() {
       // TODO: エラー処理
       console.log(error)
     })
-
-    loadArticles(currentUser.uid, tags, true)
-  }
-
-  function onOpennUpdateArticleModal(article: Article) {
-    setSelectedArticle(article)
-    onOpenUpdateArticleModal()
   }
 
   return (
@@ -375,34 +385,25 @@ export default function UserShow() {
       {currentUser && (
         <Box>
           <VStack divider={<StackDivider borderColor='gray.200' />} spacing={4} align='center'>
-            {user === null ? (
-              /**
-               * 自分のページ
-               *
-               * 投稿内容閲覧、追加、編集、削除が可能であるページ
-               */
-              <div>
-                <section className='text-center'>
-                  <Image
-                    src={currentUser.profileImageURL}
-                    width={100}
-                    height={100}
-                    alt='display name'
-                  />
-                  <h1 className='h4'>{currentUser.name}のページ</h1>
-                </section>
+            <div>
+              <section className='text-center'>
+                <Image
+                  src={user === null ? currentUser.profileImageURL : user.profileImageURL}
+                  width={100}
+                  height={100}
+                  alt='user icon'
+                />
+                <h1 className='h4'>{user === null ? currentUser.name : user.name}のページ</h1>
+                <Text>
+                  (記事数) {user === null ? currentUser.articlesCount : user.articlesCount}
+                </Text>
+              </section>
+              {user === null && (
                 <Button colorScheme='teal' onClick={onOpenAddArticleModal}>
                   Add Article
                 </Button>
-              </div>
-            ) : (
-              /**
-               * 他のアカウントのページ
-               *
-               * 投稿内容閲覧が可能であるページ
-               */
-              <div>（仮）他の人のページです</div>
-            )}
+              )}
+            </div>
           </VStack>
           {/* 記事一覧 */}
           <VStack divider={<StackDivider borderColor='gray.200' />} spacing={4} align='center'>
@@ -413,14 +414,32 @@ export default function UserShow() {
                     <Item
                       article={article}
                       isCurrentUser={user === null}
-                      onClickDelete={(article) => onClickDelete(article)}
-                      onClickUpdae={() => onOpennUpdateArticleModal(article)}
+                      onClickDelete={(article) => {
+                        setSelectedArticle(article)
+                        onOpenConfirmDeleteModal()
+                      }}
+                      onClickUpdae={function () {
+                        setSelectedArticle(article)
+                        onOpenUpdateArticleModal()
+                      }}
                     ></Item>
                   </div>
                 ))}
               </SimpleGrid>
             </Box>
           </VStack>
+          {selectedArticle !== null && (
+            <SimpleModal
+              title={'この記事を削除しますか？'}
+              message={`URL: ${selectedArticle.contentURL}`}
+              isOpen={isOpenConfirmDeleteModal}
+              onPositiveAction={async () => {
+                await onClickDelete(selectedArticle)
+                loadArticles(currentUser.uid, tags, true)
+              }}
+              onClose={onCloseConfirmDeleteModal}
+            />
+          )}
           <UpdateArticleModal
             article={selectedArticle}
             isOpen={isOpenUpdateArticleModal}
