@@ -38,6 +38,9 @@ import { Tag } from '../../types/Tag'
 import { Item as ItemObject } from 'chakra-ui-autocomplete'
 import { AddArticleModal } from '../../components/Modal/AddArticleModal'
 import { SimpleModal } from '../../components/Modal/SimpleModal'
+import { useSetRecoilState } from 'recoil'
+import { userState } from '../../states/user'
+import { fetchUser } from '../../lib/firebase-auth'
 
 type Query = {
   userName: string
@@ -45,6 +48,8 @@ type Query = {
 
 export default function UserShow() {
   const { currentUser } = useCurrentUser()
+  const setSigninUser = useSetRecoilState(userState)
+
   const scrollContainerRef = useRef(null)
   const router = useRouter()
   const queryPath = router.query as Query
@@ -95,7 +100,7 @@ export default function UserShow() {
       if (queryPath.userName === currentUser.name) {
         // 自分のページ
         setUser(null)
-        loadArticles(currentUser.uid, tags)
+        loadArticles(currentUser.uid, tags, true)
       } else {
         // 他のユーザー
         const user = await loadUser()
@@ -103,7 +108,7 @@ export default function UserShow() {
           // TODO: 対象ユーザーが存在しない場合のページ表示
           console.log('ユーザーが存在しません')
         } else {
-          loadArticles(user.uid, tags)
+          loadArticles(user.uid, tags, true)
         }
       }
     })()
@@ -228,9 +233,12 @@ export default function UserShow() {
     return fetchedTags
   }
 
-  // Actions
+  async function updateSigninUser() {
+    let user = await fetchUser(currentUser.uid)
+    setSigninUser(user)
+  }
 
-  // TODO: 追加/削除した後のカウント更新できてない
+  // Actions
 
   async function onSubmitItem(url: string, comment: string, selectedTags: ItemObject[]) {
     setIsSending(true)
@@ -308,31 +316,6 @@ export default function UserShow() {
     console.log('finish onUpdateItem')
   }
 
-  function onScroll() {
-    if (isPaginationFinished) {
-      return
-    }
-
-    const container = scrollContainerRef.current
-    if (container === null) {
-      return
-    }
-
-    const rect = container.getBoundingClientRect()
-    if (rect.top + rect.height > window.innerHeight) {
-      return
-    }
-
-    let targetuid: string
-    if (user === null) {
-      targetuid = currentUser.uid
-    } else {
-      targetuid = user.uid
-    }
-
-    loadNextArticles(targetuid)
-  }
-
   async function onClickDelete(article: Article) {
     if (user !== null) {
       // 他のユーザー情報を保持している場合
@@ -378,6 +361,31 @@ export default function UserShow() {
       // TODO: エラー処理
       console.log(error)
     })
+  }
+
+  function onScroll() {
+    if (isPaginationFinished) {
+      return
+    }
+
+    const container = scrollContainerRef.current
+    if (container === null) {
+      return
+    }
+
+    const rect = container.getBoundingClientRect()
+    if (rect.top + rect.height > window.innerHeight) {
+      return
+    }
+
+    let targetuid: string
+    if (user === null) {
+      targetuid = currentUser.uid
+    } else {
+      targetuid = user.uid
+    }
+
+    loadNextArticles(targetuid)
   }
 
   return (
@@ -436,6 +444,7 @@ export default function UserShow() {
               onPositiveAction={async () => {
                 await onClickDelete(selectedArticle)
                 loadArticles(currentUser.uid, tags, true)
+                updateSigninUser()
               }}
               onClose={onCloseConfirmDeleteModal}
             />
@@ -459,6 +468,7 @@ export default function UserShow() {
             ): Promise<void> => {
               await onSubmitItem(url, comment, selectedTags)
               loadArticles(currentUser.uid, tags, true)
+              updateSigninUser()
             }}
             onClose={onCloseAddArticleModal}
           />
