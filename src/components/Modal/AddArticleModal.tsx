@@ -56,6 +56,7 @@ export function AddArticleModal(props: Props) {
             <FormControl isInvalid={isInputError}>
               <FormLabel htmlFor='url'>URL</FormLabel>
               <Input
+                ref={initialRef}
                 id='url'
                 placeholder='URL'
                 value={contentURL}
