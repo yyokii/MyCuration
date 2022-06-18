@@ -9,6 +9,7 @@ import {
   ModalOverlay,
   Text,
 } from '@chakra-ui/react'
+import { useRef } from 'react'
 
 type Props = {
   title: string
@@ -19,9 +20,11 @@ type Props = {
 }
 
 export function SimpleModal(props: Props) {
+  const initialRef = useRef()
+
   return (
     <>
-      <Modal isOpen={props.isOpen} onClose={props.onClose}>
+      <Modal initialFocusRef={initialRef} isOpen={props.isOpen} onClose={props.onClose}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>{props.title}</ModalHeader>
@@ -40,7 +43,9 @@ export function SimpleModal(props: Props) {
             >
               OK
             </Button>
-            <Button onClick={props.onClose}>Cancel</Button>
+            <Button ref={initialRef} onClick={props.onClose}>
+              Cancel
+            </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
