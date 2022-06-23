@@ -1,5 +1,5 @@
 import { ChakraProvider } from '@chakra-ui/react'
-import { RecoilRoot, useSetRecoilState } from 'recoil'
+import { RecoilRoot, useRecoilState, useSetRecoilState } from 'recoil'
 import '../lib/firebase'
 import '../hooks/useCurrentUser'
 import '../styles/globals.scss'
@@ -7,7 +7,7 @@ import dayjs from 'dayjs'
 import 'dayjs/locale/ja'
 import { userState } from '../states/user'
 import { useEffect } from 'react'
-import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { getAuth, onAuthStateChanged, onIdTokenChanged } from 'firebase/auth'
 import { collection, doc, getDoc, getFirestore, setDoc } from 'firebase/firestore'
 import { User } from '../types/User'
 import { app } from '../lib/firebase'
@@ -23,8 +23,10 @@ function AppInit() {
   const router = useRouter()
 
   useEffect(() => {
-    onAuthStateChanged(auth, async function (firebaseUser) {
-      console.log('called onAuthStateChanged')
+    const unsubscribe = onIdTokenChanged(auth, async function (firebaseUser) {
+      // User is signed in or token was refreshed.
+      console.log('called onIdTokenChanged')
+
       if (firebaseUser) {
         console.log('Set user')
 
@@ -38,10 +40,17 @@ function AppInit() {
         let user: User
         if (isRegisterd) {
           user = await fetchUser(firebaseUser.uid)
+
+          const token = await firebaseUser.getIdToken()
+          if (token) {
+            user.identifierToken = token
+            setUser(user)
+          }
         } else {
           console.log('ユーザー情報未入力')
           user = {
             uid: firebaseUser.uid,
+            identifierToken: ``,
             isFinishedRegisterUserInfo: isRegisterd,
             name: ``,
             profileImageURL: googleProviderData.photoURL,
@@ -58,23 +67,11 @@ function AppInit() {
         setUser(null)
       }
     })
+
+    return () => unsubscribe()
   }, [])
 
   return null
-}
-
-async function createUserIfNotFound(user: User) {
-  const db = getFirestore()
-  const usersCollection = collection(db, 'users')
-  const userRef = doc(usersCollection, user.uid)
-  const document = await getDoc(userRef)
-  if (document.exists()) {
-    return
-  }
-
-  await setDoc(userRef, {
-    name: new Date().getTime(),
-  })
 }
 
 function MyApp({ Component, pageProps }) {

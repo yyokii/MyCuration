@@ -5,7 +5,6 @@ import {
   collection,
   doc,
   getDoc,
-  serverTimestamp,
   DocumentData,
   getDocs,
   limit,
@@ -41,6 +40,7 @@ import { SimpleModal } from '../../components/Modal/SimpleModal'
 import { useSetRecoilState } from 'recoil'
 import { userState } from '../../states/user'
 import { fetchUser } from '../../lib/firebase-auth'
+import axios from 'axios'
 
 type Query = {
   userName: string
@@ -243,54 +243,24 @@ export default function UserShow() {
   async function onSubmitItem(url: string, comment: string, selectedTags: ItemObject[]) {
     setIsSending(true)
 
-    const articleRef = doc(collection(firestore, `users/${currentUser.uid}/articles`))
-    const articleTags = selectedTags.map((item) => item.value)
-    const article = {
-      comment: '',
-      contentURL: url,
-      createdAt: serverTimestamp(),
-      tags: articleTags,
-      updatedAt: serverTimestamp(),
-    }
-
-    await runTransaction(firestore, async (transaction) => {
-      // ユーザー情報を取得
-      const userRef = doc(collection(firestore, `users`), currentUser.uid)
-      const userSnapShot = await transaction.get(userRef)
-      const user = userSnapShot.data() as User
-
-      // 設定するタグの情報を取得
-      var tags: Tag[] = []
-      await Promise.all(
-        articleTags.map(async (tagID) => {
-          const tagRef = doc(collection(firestore, `tags`), tagID)
-          const tagSnapShot = await transaction.get(tagRef)
-          const tag = tagSnapShot.data() as Tag
-          tag.id = tagSnapShot.id
-          tags.push(tag)
-        }),
+    try {
+      await axios.post(
+        '/api/article',
+        {
+          contentURL: url,
+          comment: comment,
+          tags: selectedTags,
+        },
+        {
+          headers: {
+            'Content-Type': 'text/plain',
+            Authorization: `Bearer ${currentUser.identifierToken}`,
+          },
+        },
       )
-
-      // ユーザーの投稿数、タグの利用回数、記事、の書き込み処理を行う
-
-      await Promise.all(
-        tags.map(async (tag) => {
-          const tagRef = doc(collection(firestore, `tags`), tag.id)
-          transaction.update(tagRef, {
-            count: tag.count + 1,
-          })
-        }),
-      )
-
-      transaction.update(userRef, {
-        articlesCount: user.articlesCount + 1,
-      })
-
-      transaction.set(articleRef, article)
-    }).catch((error) => {
-      // TODO: エラー処理
+    } catch (error) {
       console.log(error)
-    })
+    }
 
     setIsSending(false)
     toast.success('追加しました。', {

@@ -9,3 +9,7 @@ if (admin.apps.length == 0) {
     }),
   })
 }
+
+const firestore = admin.firestore()
+const auth = admin.auth()
+export { firestore, auth }
