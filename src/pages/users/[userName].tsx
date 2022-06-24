@@ -283,7 +283,6 @@ export default function UserShow() {
     })
     setIsSending(false)
     setSelectedArticle(undefined)
-    console.log('finish onUpdateItem')
   }
 
   // api化する
