@@ -43,6 +43,7 @@ function AppInit() {
 
           const token = await firebaseUser.getIdToken()
           if (token) {
+            console.log('Set token')
             user.identifierToken = token
             setUser(user)
           }
