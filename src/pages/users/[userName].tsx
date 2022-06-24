@@ -235,6 +235,7 @@ export default function UserShow() {
 
   async function updateSigninUser() {
     let user = await fetchUser(currentUser.uid)
+    user.identifierToken = currentUser.identifierToken
     setSigninUser(user)
   }
 
