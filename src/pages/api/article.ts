@@ -10,7 +10,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === 'POST') {
     try {
       const body = JSON.parse(req.body)
-      console.log('body', body)
       const article = await createArticle(
         req.query.uid as string,
         body.contentURL,
