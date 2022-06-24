@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import axios from 'axios'
 import { JSDOM } from 'jsdom'
+import { sendBadRequestErrorResponse } from '../../utils/api/sendErrorResponse'
 
 /**
  *
@@ -13,7 +14,7 @@ export default async function loadOGPdata(req: NextApiRequest, res: NextApiRespo
   const targetUrl = req.query.url as string
 
   if (!targetUrl) {
-    sendErrorResponse(res, 'url is required')
+    sendBadRequestErrorResponse(res, 'url is required')
   }
 
   const ogp: any = {}
@@ -30,7 +31,7 @@ export default async function loadOGPdata(req: NextApiRequest, res: NextApiRespo
     ogp[targetUrl] = ogpData
   } catch (error) {
     console.error(error)
-    sendErrorResponse(res, error)
+    sendBadRequestErrorResponse(res, error)
   }
 
   res.setHeader('Cache-Control', 's-maxage=2592000')
@@ -52,8 +53,4 @@ function extractOgp(metaElements: HTMLMetaElement[]): object {
     }, {})
 
   return ogp
-}
-
-function sendErrorResponse(response: NextApiResponse, message: string): void {
-  response.status(400).send(message)
 }
