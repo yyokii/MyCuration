@@ -264,7 +264,6 @@ export default function UserShow() {
     setSelectedArticle(undefined)
   }
 
-  // TODO: api化する
   async function onClickDelete(article: Article) {
     if (user !== null) {
       // 他のユーザー情報を保持している場合
