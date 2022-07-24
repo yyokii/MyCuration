@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react'
 import {
   collection,
   doc,
-  getDoc,
   DocumentData,
   getDocs,
   limit,
@@ -12,7 +11,6 @@ import {
   query,
   QuerySnapshot,
   startAfter,
-  runTransaction,
   updateDoc,
 } from 'firebase/firestore'
 import Layout from '../../components/Layout'
@@ -20,7 +18,7 @@ import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { toast } from 'react-toastify'
 import { Article } from '../../types/Article'
 import { firestore } from '../../lib/firebase'
-import { UserID } from '../../types/UserID'
+import { fetchUserWithName } from '../../lib/db'
 import Item from '../../components/Article/Item'
 import {
   Box,
@@ -103,41 +101,16 @@ export default function UserShow() {
         loadArticles(currentUser.uid, tags, true)
       } else {
         // 他のユーザー
-        const user = await loadUser()
+        const user = await fetchUserWithName(queryPath.userName)
         if (user === undefined || user === null) {
           // TODO: 対象ユーザーが存在しない場合のページ表示
           console.log('ユーザーが存在しません')
         } else {
+          setUser(user)
           loadArticles(user.uid, tags, true)
         }
       }
     })()
-
-    async function loadUser() {
-      // ユーザー名からuidを取得
-      const userNameRef = doc(collection(firestore, 'userNames'), queryPath.userName)
-      const userNameDoc = await getDoc(userNameRef)
-
-      if (!userNameDoc.exists()) {
-        return
-      }
-
-      const userID = (userNameDoc.data() as UserID).uid
-
-      // uidからユーザー情報を取得
-      const userDocRef = doc(collection(firestore, 'users'), userID)
-      const userDoc = await getDoc(userDocRef)
-
-      if (!userDoc.exists()) {
-        return
-      }
-
-      const user = userDoc.data() as User
-      user.uid = userDoc.id
-
-      setUser(user)
-      return user
-    }
   }, [currentUser, queryPath.userName])
 
   useEffect(() => {
@@ -233,6 +206,11 @@ export default function UserShow() {
     return fetchedTags
   }
 
+  /**
+   * ユーザー情報を更新する
+   *
+   * データの更新や削除があった場合に利用することで最新のユーザー情報を利用できる
+   */
   async function updateSigninUser() {
     let user = await fetchUser(currentUser.uid)
     user.identifierToken = currentUser.identifierToken
@@ -286,7 +264,7 @@ export default function UserShow() {
     setSelectedArticle(undefined)
   }
 
-  // api化する
+  // TODO: api化する
   async function onClickDelete(article: Article) {
     if (user !== null) {
       // 他のユーザー情報を保持している場合
