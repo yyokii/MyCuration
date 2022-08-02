@@ -1,3 +1,11 @@
+## Set up
+
+Firebase emulator
+
+```
+firebase emulators:start
+```
+
 ## 開発メモ
 
 - [React の StrictMode](https://nextjs-ja-translation-docs.vercel.app/docs/api-reference/next.config.js/react-strict-mode)を on にしている
