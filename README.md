@@ -10,6 +10,8 @@
   - 状態が変化すると、それに合わせ参照しているところが再描画される
 - 認証情報の取得はクライアントからのリクエストにより取得可能（= SSR することにより cookie をもらうなどはしていない）
   - [サーバサイドレンダリングの導入から生じる SSRF | セキュリティブログ | 脆弱性診断（セキュリティ診断）の GMO サイバーセキュリティ by イエラエ](https://gmo-cybersecurity.com/blog/ssr-ssrf/)
+- FirebaseのEmulatorを利用
+  - [java](https://www.azul.com/downloads/?os=macos&architecture=arm-64-bit&package=jdk)をインストール
 
 ## エラーや警告
 
