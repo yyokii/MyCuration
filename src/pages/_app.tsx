@@ -7,9 +7,9 @@ import dayjs from 'dayjs'
 import 'dayjs/locale/ja'
 import { userState } from '../states/user'
 import { useEffect } from 'react'
-import { getAuth, onIdTokenChanged } from 'firebase/auth'
+import { onIdTokenChanged } from 'firebase/auth'
 import { User } from '../types/User'
-import { app } from '../lib/firebase'
+import { auth } from '../lib/firebase'
 import { checkIfRegistered, fetchUser } from '../lib/firebase-auth'
 import { useRouter } from 'next/router'
 
@@ -18,7 +18,6 @@ dayjs.locale('ja')
 
 function AppInit() {
   const setUser = useSetRecoilState(userState)
-  const auth = getAuth(app)
   const router = useRouter()
 
   useEffect(() => {
