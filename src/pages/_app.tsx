@@ -1,5 +1,5 @@
 import { ChakraProvider } from '@chakra-ui/react'
-import { RecoilRoot, useRecoilState, useSetRecoilState } from 'recoil'
+import { RecoilRoot, useSetRecoilState } from 'recoil'
 import '../lib/firebase'
 import '../hooks/useCurrentUser'
 import '../styles/globals.scss'
@@ -7,10 +7,9 @@ import dayjs from 'dayjs'
 import 'dayjs/locale/ja'
 import { userState } from '../states/user'
 import { useEffect } from 'react'
-import { getAuth, onAuthStateChanged, onIdTokenChanged } from 'firebase/auth'
-import { collection, doc, getDoc, getFirestore, setDoc } from 'firebase/firestore'
+import { onIdTokenChanged } from 'firebase/auth'
 import { User } from '../types/User'
-import { app } from '../lib/firebase'
+import { auth } from '../lib/firebase'
 import { checkIfRegistered, fetchUser } from '../lib/firebase-auth'
 import { useRouter } from 'next/router'
 
@@ -19,7 +18,6 @@ dayjs.locale('ja')
 
 function AppInit() {
   const setUser = useSetRecoilState(userState)
-  const auth = getAuth(app)
   const router = useRouter()
 
   useEffect(() => {

@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import * as firebaseAuth from 'firebase/auth'
 import Layout from '../components/Layout'
+import { auth } from '../lib/firebase'
 
 const redirectableWhiteList = ['', 'onboarding']
 
@@ -15,13 +16,13 @@ const AuthRedirectPage: NextPage = () => {
     }
 
     ;(async () => {
-      const result = await firebaseAuth.getRedirectResult(firebaseAuth.getAuth())
+      const result = await firebaseAuth.getRedirectResult(auth)
       if (result == null) {
         // result がない時は認証前
         // `auth/redirect-cancelled-by-user` 等のエラー検証が必要
         // https://firebase.google.com/docs/reference/js/auth#autherrorcodes
         await firebaseAuth
-          .signInWithRedirect(firebaseAuth.getAuth(), new firebaseAuth.GoogleAuthProvider())
+          .signInWithRedirect(auth, new firebaseAuth.GoogleAuthProvider())
           .catch((error) => {
             console.log(error)
             // TODO: エラーページを表示する
