@@ -10,15 +10,20 @@ import {
 import { collection, doc, getDoc, runTransaction } from 'firebase/firestore'
 import { useRouter } from 'next/router'
 import { useRef, useState } from 'react'
+import { useSetRecoilState } from 'recoil'
 import NormalButton from '../components/common/NormalButton'
 import Layout from '../components/Layout'
 import { useCurrentUser } from '../hooks/useCurrentUser'
 import { firestore } from '../lib/firebase'
+import { auth } from '../lib/firebase'
+import { userState } from '../states/user'
+import { User } from '../types/User'
 
 export default function Onboarding() {
   const router = useRouter()
   const initialRef = useRef()
   const { currentUser } = useCurrentUser()
+  const setUser = useSetRecoilState(userState)
   const [userName, setUserName] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false)
@@ -41,20 +46,38 @@ export default function Onboarding() {
     const userRef = doc(collection(firestore, 'users'), currentUser.uid)
     const userNamesRef = doc(userNamesCollection, userName)
 
-    const user = {
+    const user: User = {
       isFinishedRegisterUserInfo: true,
       name: userName,
       profileImageURL: currentUser.profileImageURL,
       articlesCount: 0,
+      uid: currentUser.uid,
+      identifierToken: '',
     }
-    // TODO: _app.tsxでsubscribeしてるから不要かも
-    // setUser(user)
+
     setIsSending(true)
     await runTransaction(firestore, async (transaction) => {
-      transaction.set(userRef, user)
+      /*
+       Set user data
+
+       identifierToken is not set because it is not necessary.
+       */
+      transaction.set(userRef, {
+        isFinishedRegisterUserInfo: true,
+        name: userName,
+        profileImageURL: currentUser.profileImageURL,
+        articlesCount: 0,
+        uid: currentUser.uid,
+      })
       transaction.set(userNamesRef, {
         uid: currentUser.uid,
       })
+
+      const token = await auth.currentUser.getIdToken()
+      if (token) {
+        user.identifierToken = token
+        setUser(user)
+      }
     }).catch((error) => {
       console.log(error)
     })
