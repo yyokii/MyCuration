@@ -1,7 +1,6 @@
-import { GoogleAuthProvider, signInWithRedirect, signOut } from 'firebase/auth'
 import { collection, doc, getDoc } from 'firebase/firestore'
 import { User } from '../types/User'
-import { auth, firestore } from './firebase'
+import { firestore } from './firebase'
 
 export async function checkIfRegistered(uid: string) {
   const userDocRef = doc(firestore, 'users', uid)
@@ -16,7 +15,7 @@ export async function checkIfRegistered(uid: string) {
   }
 }
 
-export async function fetchUser(uid: string): Promise<User> {
+async function fetchUser(uid: string): Promise<User> {
   // uidからユーザー情報を取得
   const userDocRef = doc(collection(firestore, 'users'), uid)
   const userDoc = await getDoc(userDocRef)
@@ -30,12 +29,4 @@ export async function fetchUser(uid: string): Promise<User> {
   return user
 }
 
-export const login = (): Promise<never> => {
-  // TODO: 言語設定などの設定変更
-  const provider = new GoogleAuthProvider()
-  return signInWithRedirect(auth, provider)
-}
-
-export const logout = (): Promise<void> => {
-  return signOut(auth)
-}
+export { fetchUser }
