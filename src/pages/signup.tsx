@@ -1,13 +1,8 @@
 import { Box, Button, StackDivider, VStack } from '@chakra-ui/react'
 import Link from 'next/link'
 import Layout from '../components/Layout'
-import { login, logout } from '../lib/firebase-auth'
 
 export default function Signup() {
-  const handleLogout = (): void => {
-    logout().catch((error) => console.error(error))
-  }
-
   return (
     <Layout>
       <VStack divider={<StackDivider borderColor='gray.200' />} spacing={4} align='center'>
