@@ -37,6 +37,7 @@ function AppInit() {
 
         let user: User
         if (isRegisterd) {
+          console.log('User is registered.')
           user = await fetchUser(firebaseUser.uid)
 
           const token = await firebaseUser.getIdToken()
@@ -44,9 +45,10 @@ function AppInit() {
             console.log('Set token')
             user.identifierToken = token
             setUser(user)
+            router.push(`/users/${user.name}`)
           }
         } else {
-          console.log('ユーザー情報未入力')
+          console.log('User is not registered.')
           user = {
             uid: firebaseUser.uid,
             identifierToken: ``,
@@ -64,6 +66,7 @@ function AppInit() {
       } else {
         console.log('User is not signed in')
         setUser(null)
+        router.push('/')
       }
     })
 
