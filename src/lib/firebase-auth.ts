@@ -1,6 +1,7 @@
+import { signOut as signOutCurrentUser } from 'firebase/auth'
 import { collection, doc, getDoc } from 'firebase/firestore'
 import { User } from '../types/User'
-import { firestore } from './firebase'
+import { auth, firestore } from './firebase'
 
 export async function checkIfRegistered(uid: string) {
   const userDocRef = doc(firestore, 'users', uid)
@@ -29,4 +30,8 @@ async function fetchUser(uid: string): Promise<User> {
   return user
 }
 
-export { fetchUser }
+async function signOut(): Promise<void> {
+  return signOutCurrentUser(auth)
+}
+
+export { fetchUser, signOut }
