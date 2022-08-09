@@ -11,26 +11,24 @@ import {
   Stack,
 } from '@chakra-ui/react'
 import { HamburgerIcon, CloseIcon, AddIcon } from '@chakra-ui/icons'
+import { signOut } from '../lib/firebase-auth'
 
-const Links = ['Dashboard', 'Projects', 'Team']
-
-const NavLink = ({ children }: { children: ReactNode }) => (
-  <Link
-    px={2}
-    py={1}
-    rounded={'md'}
-    _hover={{
-      textDecoration: 'none',
-      bg: useColorModeValue('gray.200', 'gray.700'),
-    }}
-    href={'#'}
-  >
-    {children}
-  </Link>
-)
+interface MenuContent {
+  title: string
+  action: () => void
+}
 
 export default function Header() {
   const { isOpen, onOpen, onClose } = useDisclosure()
+
+  const menuContents: MenuContent[] = [
+    {
+      title: 'Sign out',
+      action: async () => {
+        await signOut()
+      },
+    },
+  ]
 
   return (
     <>
@@ -39,8 +37,10 @@ export default function Header() {
           <HStack spacing={8} alignItems={'center'}>
             <Box>Logo</Box>
             <HStack as={'nav'} spacing={4} display={{ base: 'none', md: 'flex' }}>
-              {Links.map((link) => (
-                <NavLink key={link}>{link}</NavLink>
+              {menuContents.map((menu) => (
+                <Box key={menu.title} onClick={menu.action}>
+                  {menu.title}
+                </Box>
               ))}
             </HStack>
           </HStack>
@@ -58,8 +58,10 @@ export default function Header() {
             <Spacer />
             <Box pb={4} display={{ md: 'none' }}>
               <Stack as={'nav'} spacing={4}>
-                {Links.map((link) => (
-                  <NavLink key={link}>{link}</NavLink>
+                {menuContents.map((menu) => (
+                  <Box key={menu.title} onClick={menu.action}>
+                    {menu.title}
+                  </Box>
                 ))}
               </Stack>
             </Box>
