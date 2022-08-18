@@ -261,7 +261,7 @@ export default function UserShow() {
       comment: comment,
     })
     setIsSending(false)
-    setSelectedArticle(undefined)
+    setSelectedArticle(null)
   }
 
   async function onClickDelete(article: Article) {
