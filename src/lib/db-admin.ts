@@ -1,7 +1,7 @@
-import { User } from '../types/User'
+import { User } from '../types/user'
 import * as admin from 'firebase-admin'
 import { firestore } from './firebase_admin'
-import { Article } from '../types/Article'
+import { Article } from '../types/article'
 import { Category } from '../types/category'
 
 export async function createArticle(

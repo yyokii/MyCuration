@@ -12,9 +12,8 @@ import {
   VStack,
 } from '@chakra-ui/react'
 import dayjs from 'dayjs'
-import { Article } from '../../types/Article'
+import { Article } from '../../types/article'
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons'
-import article from '../../pages/api/article'
 
 type Props = {
   article: Article

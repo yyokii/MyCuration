@@ -17,7 +17,7 @@ import { useCurrentUser } from '../hooks/useCurrentUser'
 import { firestore } from '../lib/firebase'
 import { auth } from '../lib/firebase'
 import { userState } from '../states/user'
-import { User } from '../types/User'
+import { User } from '../types/user'
 
 export default function Onboarding() {
   const router = useRouter()
