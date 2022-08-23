@@ -13,13 +13,13 @@ import {
   ModalOverlay,
 } from '@chakra-ui/react'
 import { useRef, useState } from 'react'
-import AutoComplete from '../AutoComplete'
-import { Item } from 'chakra-ui-autocomplete'
+import { CategorySelect } from '../Category/CategorySelect'
+import { Category } from '../../types/category'
 
 type Props = {
   isOpen: boolean
-  tagItems: Item[]
-  onSubmit: (url: string, comment: string, tags: Item[]) => void
+  categories: Category[]
+  onSubmit: (url: string, comment: string, category: Category) => void
   onClose: () => void
 }
 
@@ -27,22 +27,23 @@ export function AddArticleModal(props: Props) {
   const initialRef = useRef()
   const [contentURL, setContentURL] = useState('')
   const [comment, setComment] = useState('')
-  const [selectedTagItems, setSelectedTagItems] = useState<Item[]>([])
+
+  const [selectedCategory, setSelectedCategory] = useState<Category>(null)
 
   const isInputError = contentURL === ''
 
   async function onSubmit() {
-    props.onSubmit(contentURL, comment, selectedTagItems)
+    props.onSubmit(contentURL, comment, selectedCategory)
     setContentURL('')
     setComment('')
-    setSelectedTagItems([])
+    setSelectedCategory(null)
     props.onClose()
   }
 
-  const handleSelectedItemsChange = (selectedItems) => {
-    if (selectedItems) {
-      setSelectedTagItems(selectedItems)
-    }
+  function handleSelectedcategoryChange(categoryId: string) {
+    const selectedCategory = props.categories.find((c) => c.id === categoryId)
+    console.log(categoryId)
+    setSelectedCategory(selectedCategory)
   }
 
   return (
@@ -63,22 +64,24 @@ export function AddArticleModal(props: Props) {
                 onChange={(e) => setContentURL(e.target.value)}
                 required
               />
-              {isInputError && <FormErrorMessage>URLは必須です</FormErrorMessage>}
-              <FormLabel htmlFor='comment'>コメント</FormLabel>
+              {isInputError && <FormErrorMessage>URL is required</FormErrorMessage>}
+
+              <FormLabel mt={4}>Category</FormLabel>
+              <CategorySelect
+                categories={props.categories}
+                onChange={handleSelectedcategoryChange}
+              />
+
+              <FormLabel htmlFor='comment' mt={4}>
+                Comment
+              </FormLabel>
               <Input
                 id='comment'
-                placeholder='記事に対するコメントを入力してください'
+                placeholder='Input comment'
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
               />
             </FormControl>
-            <AutoComplete
-              label='Select tags'
-              placeholder='Type a tag'
-              items={props.tagItems}
-              selectedItems={selectedTagItems}
-              handleSelectedItemsChange={(value) => handleSelectedItemsChange(value)}
-            />
           </ModalBody>
           <ModalFooter>
             <Button colorScheme='blue' mr={3} onClick={onSubmit}>
