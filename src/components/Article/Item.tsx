@@ -14,6 +14,7 @@ import {
 import dayjs from 'dayjs'
 import { Article } from '../../types/Article'
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons'
+import article from '../../pages/api/article'
 
 type Props = {
   article: Article
@@ -67,20 +68,10 @@ export default function Item(props: Props) {
               </Circle>
             </Flex>
           )}
-          {props.article.displayTags.length > 0 && (
-            <HStack>
-              {props.article.displayTags.map((tag) => (
-                <Text
-                  color={'green.500'}
-                  fontWeight={800}
-                  fontSize={'sm'}
-                  letterSpacing={1.1}
-                  key={tag}
-                >
-                  {tag}
-                </Text>
-              ))}
-            </HStack>
+          {props.article.category !== '' && (
+            <Text color={'green.500'} fontWeight={800} fontSize={'sm'} letterSpacing={1.1}>
+              {props.article.category}
+            </Text>
           )}
           <VStack align={'start'} spacing={0}>
             <Text color={'gray.500'}>

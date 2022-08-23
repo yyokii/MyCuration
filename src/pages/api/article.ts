@@ -14,7 +14,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         req.query.uid as string,
         body.contentURL,
         body.comment,
-        body.tags,
+        body.category,
       )
       return res.status(200).json(article)
     } catch (error) {

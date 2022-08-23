@@ -5,7 +5,7 @@ export interface Article {
   comment: string
   contentURL: string
   createdAt: Timestamp
-  tags: string[]
-  displayTags: string[]
+  category: string
+  displayCategory: string // This is used for display purpose.
   updatedAt: Timestamp
 }
