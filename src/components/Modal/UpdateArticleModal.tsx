@@ -12,7 +12,7 @@ import {
   ModalOverlay,
 } from '@chakra-ui/react'
 import { useEffect, useRef, useState } from 'react'
-import { Article } from '../../types/Article'
+import { Article } from '../../types/article'
 
 type Props = {
   article: Article

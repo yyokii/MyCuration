@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { User } from '../../types/User'
+import { User } from '../../types/user'
 import { Category } from '../../types/category'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -17,7 +17,7 @@ import {
 import Layout from '../../components/Layout'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { toast } from 'react-toastify'
-import { Article } from '../../types/Article'
+import { Article } from '../../types/article'
 import { firestore } from '../../lib/firebase'
 import { fetchUserWithName } from '../../lib/db'
 import Item from '../../components/Article/Item'

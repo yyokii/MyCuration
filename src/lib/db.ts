@@ -1,7 +1,7 @@
 import { firestore } from './firebase'
-import { User } from '../types/User'
+import { User } from '../types/user'
 import { doc, collection, getDoc } from 'firebase/firestore'
-import { UserID } from '../types/UserID'
+import { UserID } from '../types/userID'
 
 export async function fetchUserWithName(name: string): Promise<User> {
   // ユーザー名からuidを取得
