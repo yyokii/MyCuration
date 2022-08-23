@@ -42,7 +42,6 @@ export function AddArticleModal(props: Props) {
 
   function handleSelectedcategoryChange(categoryId: string) {
     const selectedCategory = props.categories.find((c) => c.id === categoryId)
-    console.log(categoryId)
     setSelectedCategory(selectedCategory)
   }
 
