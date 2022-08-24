@@ -4,7 +4,6 @@ import {
   Center,
   Heading,
   Text,
-  HStack,
   Stack,
   useColorModeValue,
   Circle,
