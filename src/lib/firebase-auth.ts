@@ -1,6 +1,6 @@
 import { signOut as signOutCurrentUser } from 'firebase/auth'
 import { collection, doc, getDoc } from 'firebase/firestore'
-import { User } from '../types/User'
+import { User } from '../types/user'
 import { auth, firestore } from './firebase'
 
 export async function checkIfRegistered(uid: string) {

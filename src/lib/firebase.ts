@@ -41,6 +41,8 @@ if (getApps().length === 0) {
   firebaseApp = getApps()[0]
 }
 
-export const app = firebaseApp
-export const firestore = getFirestore(app)
-export const auth = getAuth(app)
+const app = firebaseApp
+const firestore = getFirestore(app)
+const auth = getAuth(app)
+
+export { app, firestore, auth }

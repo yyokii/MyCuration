@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router'
-import { User } from '../../types/User'
+import { User } from '../../types/user'
+import { Category } from '../../types/category'
 import { useEffect, useRef, useState } from 'react'
 import {
   collection,
@@ -16,7 +17,7 @@ import {
 import Layout from '../../components/Layout'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { toast } from 'react-toastify'
-import { Article } from '../../types/Article'
+import { Article } from '../../types/article'
 import { firestore } from '../../lib/firebase'
 import { fetchUserWithName } from '../../lib/db'
 import Item from '../../components/Article/Item'
@@ -31,8 +32,6 @@ import {
   VStack,
 } from '@chakra-ui/react'
 import { UpdateArticleModal } from '../../components/Modal/UpdateArticleModal'
-import { Tag } from '../../types/Tag'
-import { Item as ItemObject } from 'chakra-ui-autocomplete'
 import { AddArticleModal } from '../../components/Modal/AddArticleModal'
 import { SimpleModal } from '../../components/Modal/SimpleModal'
 import { useSetRecoilState } from 'recoil'
@@ -75,8 +74,7 @@ export default function UserShow() {
 
   const [isSending, setIsSending] = useState(false)
   const [articles, setArticles] = useState<Article[]>([])
-  const [tags, setTags] = useState<Tag[]>([])
-  const [tagItems, setTagItems] = useState<ItemObject[]>([]) // タグ入力欄のオートコンプリート用のデータ
+  const [categories, setCategories] = useState<Category[]>([])
 
   const [isPaginationFinished, setIsPaginationFinished] = useState(false)
   const [selectedArticle, setSelectedArticle] = useState<Article>(null)
@@ -94,11 +92,11 @@ export default function UserShow() {
     }
 
     ;(async () => {
-      const tags = await loadTags()
+      const categories = await loadCategories()
       if (queryPath.userName === currentUser.name) {
         // 自分のページ
         setUser(null)
-        loadArticles(currentUser.uid, tags, true)
+        loadArticles(currentUser.uid, categories, true)
       } else {
         // 他のユーザー
         const user = await fetchUserWithName(queryPath.userName)
@@ -107,7 +105,7 @@ export default function UserShow() {
           console.log('ユーザーが存在しません')
         } else {
           setUser(user)
-          loadArticles(user.uid, tags, true)
+          loadArticles(user.uid, categories, true)
         }
       }
     })()
@@ -120,7 +118,7 @@ export default function UserShow() {
     }
   }, [articles, scrollContainerRef.current, isPaginationFinished])
 
-  async function loadArticles(uid: string, tags: Tag[], isReload: boolean = false) {
+  async function loadArticles(uid: string, categories: Category[], isReload: boolean = false) {
     const snapshot = await getDocs(createArticlesBaseQuery(uid))
 
     if (snapshot.empty) {
@@ -128,7 +126,7 @@ export default function UserShow() {
       return
     }
 
-    appendArticles(snapshot, tags, isReload)
+    appendArticles(snapshot, categories, isReload)
   }
 
   async function loadNextArticles(uid: string) {
@@ -145,25 +143,26 @@ export default function UserShow() {
       return
     }
 
-    appendArticles(snapshot, tags)
+    appendArticles(snapshot, categories)
   }
 
   function appendArticles(
     snapshot: QuerySnapshot<DocumentData>,
-    tags: Tag[],
+    categories: Category[],
     isReload: boolean = false,
   ) {
     const fetchedArticles = snapshot.docs.map((doc) => {
       const article = doc.data() as Article
       article.id = doc.id
 
-      // tagの設定
-      article.displayTags = []
-      if (article.tags.length > 0) {
-        article.tags.forEach((tagID) => {
-          const displayName = tags.find((tag) => tag.id === tagID).name
-          article.displayTags.push(displayName)
-        })
+      console.log('Category:' + article.category)
+
+      // Categoryの設定
+      if (article.category !== undefined && article.category !== null) {
+        const displayName = categories.find((category) => category.id === article.category).name
+        article.displayCategory = displayName
+      } else {
+        article.displayCategory = ''
       }
 
       return article
@@ -184,26 +183,18 @@ export default function UserShow() {
     )
   }
 
-  async function loadTags(): Promise<Tag[]> {
-    const snapshot = await getDocs(query(collection(firestore, `tags`), orderBy('name')))
+  async function loadCategories(): Promise<Category[]> {
+    const snapshot = await getDocs(query(collection(firestore, `categories`), orderBy('name')))
 
-    const fetchedTags = snapshot.docs.map((doc) => {
-      const tag = doc.data() as Tag
-      tag.id = doc.id
-      return tag
+    const fetchedCategories = snapshot.docs.map((doc) => {
+      const category = doc.data() as Category
+      category.id = doc.id
+      return category
     })
-    setTags(fetchedTags)
+    setCategories(fetchedCategories)
 
-    // タグ入力欄のオートコンプリート用のデータを作成
-    const tagItems = fetchedTags.map((tag) => {
-      return {
-        value: tag.id,
-        label: tag.name,
-      }
-    })
-    setTagItems(tagItems)
-
-    return fetchedTags
+    console.log(fetchedCategories)
+    return fetchedCategories
   }
 
   /**
@@ -219,7 +210,7 @@ export default function UserShow() {
 
   // Actions
 
-  async function onSubmitItem(url: string, comment: string, selectedTags: ItemObject[]) {
+  async function onSubmitItem(url: string, comment: string, category: Category) {
     setIsSending(true)
 
     try {
@@ -228,7 +219,7 @@ export default function UserShow() {
         {
           contentURL: url,
           comment: comment,
-          tags: selectedTags,
+          category: category ? category.id : null,
         },
         {
           headers: {
@@ -261,7 +252,7 @@ export default function UserShow() {
       comment: comment,
     })
     setIsSending(false)
-    setSelectedArticle(undefined)
+    setSelectedArticle(null)
   }
 
   async function onClickDelete(article: Article) {
@@ -363,7 +354,7 @@ export default function UserShow() {
               isOpen={isOpenConfirmDeleteModal}
               onPositiveAction={async () => {
                 await onClickDelete(selectedArticle)
-                loadArticles(currentUser.uid, tags, true)
+                loadArticles(currentUser.uid, categories, true)
                 updateSigninUser()
               }}
               onClose={onCloseConfirmDeleteModal}
@@ -375,19 +366,15 @@ export default function UserShow() {
             onClose={onCloseUpdateArticleModal}
             onUpdate={async (url: string, comment: string): Promise<void> => {
               await onUpdateItem(url, comment)
-              loadArticles(currentUser.uid, tags, true)
+              loadArticles(currentUser.uid, categories, true)
             }}
           />
           <AddArticleModal
             isOpen={isOpenAddArticleModal}
-            tagItems={tagItems}
-            onSubmit={async (
-              url: string,
-              comment: string,
-              selectedTags: ItemObject[],
-            ): Promise<void> => {
-              await onSubmitItem(url, comment, selectedTags)
-              loadArticles(currentUser.uid, tags, true)
+            categories={categories}
+            onSubmit={async (url: string, comment: string, category: Category): Promise<void> => {
+              await onSubmitItem(url, comment, category)
+              loadArticles(currentUser.uid, categories, true)
               updateSigninUser()
             }}
             onClose={onCloseAddArticleModal}
