@@ -6,6 +6,16 @@ Firebase emulator
 firebase emulators:start
 ```
 
+## Commands
+
+- Import emulators settings
+
+`firebase emulators:start --import=./emulators`
+
+- Export emulators settings
+
+`firebase emulators:export --force ./emulators`
+
 ## 開発メモ
 
 - [React の StrictMode](https://nextjs-ja-translation-docs.vercel.app/docs/api-reference/next.config.js/react-strict-mode)を on にしている
