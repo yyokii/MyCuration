@@ -7,13 +7,7 @@ export async function checkIfRegistered(uid: string) {
   const userDocRef = doc(firestore, 'users', uid)
   const snapshot = await getDoc(userDocRef)
 
-  if (snapshot.exists()) {
-    console.log('ユーザー情報登録済みのユーザーです')
-    return true
-  } else {
-    console.log('ユーザー情報登録がまだ登録されていません')
-    return false
-  }
+  return snapshot.exists()
 }
 
 async function fetchUser(uid: string): Promise<User> {
