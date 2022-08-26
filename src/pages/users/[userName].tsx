@@ -155,8 +155,6 @@ export default function UserShow() {
       const article = doc.data() as Article
       article.id = doc.id
 
-      console.log('Category:' + article.category)
-
       // Categoryの設定
       if (article.category !== undefined && article.category !== null) {
         const displayName = categories.find((category) => category.id === article.category).name
@@ -193,7 +191,6 @@ export default function UserShow() {
     })
     setCategories(fetchedCategories)
 
-    console.log(fetchedCategories)
     return fetchedCategories
   }
 
