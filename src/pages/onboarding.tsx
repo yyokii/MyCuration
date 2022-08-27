@@ -50,9 +50,10 @@ export default function Onboarding() {
       isFinishedRegisterUserInfo: true,
       name: userName,
       profileImageURL: currentUser.profileImageURL,
-      articlesCount: 0,
       uid: currentUser.uid,
       identifierToken: '',
+      articlesCount: 0,
+      categoriesCount: new Map<string, number>(),
     }
 
     setIsSending(true)
