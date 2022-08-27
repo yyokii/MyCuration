@@ -50,6 +50,7 @@ export default function UserShow() {
   const scrollContainerRef = useRef(null)
   const router = useRouter()
   const queryPath = router.query as Query
+  const isCurrentUser = currentUser?.name === queryPath.userName
 
   // モーダルの表示管理
   const {
@@ -70,11 +71,12 @@ export default function UserShow() {
 
   // State
 
-  const [user, setUser] = useState<User>(null) // 本画面で表示する対象ユーザー。 null: ログインしているユーザー自身の場合nullとなる。
+  const [user, setUser] = useState<User>(null) // 本画面で表示する対象ユーザー
 
   const [isSending, setIsSending] = useState(false)
   const [articles, setArticles] = useState<Article[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [categoriesRatio, setCategoriesRatio] = useState<Map<string, number>>(new Map())
 
   const [isPaginationFinished, setIsPaginationFinished] = useState(false)
   const [selectedArticle, setSelectedArticle] = useState<Article>(null)
@@ -93,10 +95,10 @@ export default function UserShow() {
 
     ;(async () => {
       const categories = await loadCategories()
+      let displayUser = null
       if (queryPath.userName === currentUser.name) {
         // 自分のページ
-        setUser(null)
-        loadArticles(currentUser.uid, categories, true)
+        displayUser = currentUser
       } else {
         // 他のユーザー
         const user = await fetchUserWithName(queryPath.userName)
@@ -104,10 +106,11 @@ export default function UserShow() {
           // TODO: 対象ユーザーが存在しない場合のページ表示
           console.log('ユーザーが存在しません')
         } else {
-          setUser(user)
-          loadArticles(user.uid, categories, true)
+          displayUser = user
         }
       }
+      setUser(displayUser)
+      loadArticles(displayUser.uid, categories, true)
     })()
   }, [currentUser, queryPath.userName])
 
@@ -253,7 +256,7 @@ export default function UserShow() {
   }
 
   async function onClickDelete(article: Article) {
-    if (user !== null) {
+    if (!isCurrentUser) {
       // 他のユーザー情報を保持している場合
       return
     }
@@ -285,14 +288,7 @@ export default function UserShow() {
       return
     }
 
-    let targetuid: string
-    if (user === null) {
-      targetuid = currentUser.uid
-    } else {
-      targetuid = user.uid
-    }
-
-    loadNextArticles(targetuid)
+    loadNextArticles(user.uid)
   }
 
   return (
@@ -304,17 +300,15 @@ export default function UserShow() {
               <section className='text-center'>
                 <Image
                   borderRadius='full'
-                  src={user === null ? currentUser.profileImageURL : user.profileImageURL}
+                  src={user?.profileImageURL}
                   width={100}
                   height={100}
                   alt='user icon'
                 />
-                <h1 className='h4'>{user === null ? currentUser.name : user.name}のページ</h1>
-                <Text>
-                  (記事数) {user === null ? currentUser.articlesCount : user.articlesCount}
-                </Text>
+                <h1 className='h4'>{user?.name}のページ</h1>
+                <Text>(記事数) {user?.articlesCount}</Text>
               </section>
-              {user === null && (
+              {isCurrentUser && (
                 <Button colorScheme='teal' onClick={onOpenAddArticleModal}>
                   Add Article
                 </Button>
@@ -329,7 +323,7 @@ export default function UserShow() {
                   <div key={article.id}>
                     <Item
                       article={article}
-                      isCurrentUser={user === null}
+                      isCurrentUser={isCurrentUser}
                       onClickDelete={(article) => {
                         setSelectedArticle(article)
                         onOpenConfirmDeleteModal()
