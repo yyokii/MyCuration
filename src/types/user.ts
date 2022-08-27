@@ -11,4 +11,5 @@ export interface User {
   name: string
   profileImageURL: string
   articlesCount: number
+  categoriesCount: Map<string, number>
 }

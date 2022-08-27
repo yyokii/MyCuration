@@ -56,6 +56,7 @@ function AppInit() {
             name: ``,
             profileImageURL: googleProviderData.photoURL,
             articlesCount: 0,
+            categoriesCount: new Map<string, number>(),
           }
           if (router.isReady) {
             router.push('/onboarding')
