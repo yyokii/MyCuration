@@ -38,6 +38,7 @@ import { useSetRecoilState } from 'recoil'
 import { userState } from '../../states/user'
 import { fetchUser } from '../../lib/firebase-auth'
 import axios from 'axios'
+import CategoriesRatioList, { CategoriesRatio } from '../../components/CategoriesRatio'
 
 type Query = {
   userName: string
@@ -76,14 +77,16 @@ export default function UserShow() {
   const [isSending, setIsSending] = useState(false)
   const [articles, setArticles] = useState<Article[]>([])
   const [categories, setCategories] = useState<Category[]>([])
-  const [categoriesRatio, setCategoriesRatio] = useState<Map<string, number>>(new Map())
+  const [categoriesRatio, setCategoriesRatio] = useState<CategoriesRatio[]>([])
 
   const [isPaginationFinished, setIsPaginationFinished] = useState(false)
   const [selectedArticle, setSelectedArticle] = useState<Article>(null)
 
   // Effect
 
-  // ユーザー情報と記事の取得を行う
+  /**
+   * ログイン中のユーザー、URLのパスがが変割った際にユーザー情報と記事の取得を行う
+   * */
   useEffect(() => {
     if (currentUser === null) {
       return
@@ -115,6 +118,7 @@ export default function UserShow() {
   }, [currentUser, queryPath.userName])
 
   useEffect(() => {
+    setCategoriesRatio(calcCategoriesRatio(user?.categoriesCount, articles.length))
     window.addEventListener('scroll', onScroll)
     return () => {
       window.removeEventListener('scroll', onScroll)
@@ -195,6 +199,27 @@ export default function UserShow() {
     setCategories(fetchedCategories)
 
     return fetchedCategories
+  }
+
+  function calcCategoriesRatio(
+    categoriesCount: Map<string, number>,
+    articlesCount: number,
+  ): CategoriesRatio[] {
+    if (categoriesCount === undefined || categoriesCount === null) {
+      return []
+    }
+
+    let categories: CategoriesRatio[] = []
+
+    for (const [key, value] of categoriesCount) {
+      const ratio = Math.round((value / articlesCount) * 100)
+      categories.push({
+        name: key,
+        ratio: ratio,
+      })
+    }
+
+    return categories
   }
 
   /**
@@ -295,25 +320,25 @@ export default function UserShow() {
     <Layout>
       {currentUser && (
         <Box>
-          <VStack divider={<StackDivider borderColor='gray.200' />} spacing={4} align='center'>
-            <div>
-              <section className='text-center'>
-                <Image
-                  borderRadius='full'
-                  src={user?.profileImageURL}
-                  width={100}
-                  height={100}
-                  alt='user icon'
-                />
-                <h1 className='h4'>{user?.name}のページ</h1>
-                <Text>(記事数) {user?.articlesCount}</Text>
-              </section>
-              {isCurrentUser && (
-                <Button colorScheme='teal' onClick={onOpenAddArticleModal}>
-                  Add Article
-                </Button>
-              )}
-            </div>
+          {/* プロフィール情報 */}
+          <VStack spacing={4} align='center'>
+            <section className='text-center'>
+              <Image
+                borderRadius='full'
+                src={user?.profileImageURL}
+                width={100}
+                height={100}
+                alt='user icon'
+              />
+            </section>
+            <h1 className='h4'>{user?.name}のページ</h1>
+            <Text>(記事数) {user?.articlesCount}</Text>
+            <CategoriesRatioList categoriesRatio={categoriesRatio} />
+            {isCurrentUser && (
+              <Button colorScheme='teal' onClick={onOpenAddArticleModal}>
+                Add Article
+              </Button>
+            )}
           </VStack>
           {/* 記事一覧 */}
           <VStack divider={<StackDivider borderColor='gray.200' />} spacing={4} align='center'>
