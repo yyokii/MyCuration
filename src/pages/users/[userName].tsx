@@ -212,6 +212,9 @@ export default function UserShow() {
     let categories: CategoriesRatio[] = []
 
     for (const [key, value] of categoriesCount) {
+      if (value === 0) {
+        continue
+      }
       const ratio = Math.round((value / articlesCount) * 100)
       categories.push({
         name: key,
