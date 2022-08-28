@@ -1,4 +1,4 @@
-import { User } from '../types/user'
+import { User, userConverterForAdmin } from '../types/user'
 import * as admin from 'firebase-admin'
 import { firestore } from './firebase_admin'
 import { Article } from '../types/article'
@@ -22,10 +22,10 @@ export async function createArticle(
   try {
     await firestore.runTransaction(async (transaction) => {
       // ユーザー情報を取得
-      const userRef = firestore.collection(`users`).doc(uid)
+      const userRef = firestore.collection(`users`).withConverter(userConverterForAdmin).doc(uid)
       const userSnapShot = await transaction.get(userRef)
+
       const user = userSnapShot.data() as User
-      user.convertObjectToCategoriesCountMap(user.categoriesCount)
 
       // 設定するカテゴリの情報を取得
       // TODO: リファクタ、deleteでも同じことしている
@@ -39,8 +39,12 @@ export async function createArticle(
         count: category.count + 1,
       })
 
+      const currentSelectedCategoryCount = user.categoriesCount.get(categoryID) ?? 0
+      user.categoriesCount.set(categoryID, currentSelectedCategoryCount + 1)
+      const categoriesCountObj = Object.fromEntries(user.categoriesCount)
       transaction.update(userRef, {
         articlesCount: user.articlesCount + 1,
+        categoriesCount: categoriesCountObj,
       })
 
       transaction.set(articleRef, article)
