@@ -20,7 +20,9 @@ async function fetchUser(uid: string): Promise<User> {
   }
 
   const user = userDoc.data() as User
+
   user.uid = userDoc.id
+  user.convertObjectToCategoriesCountMap(user.categoriesCount)
   return user
 }
 

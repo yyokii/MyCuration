@@ -23,6 +23,8 @@ export async function fetchUserWithName(name: string): Promise<User> {
   }
 
   const user = userDoc.data() as User
+
   user.uid = userDoc.id
+  user.convertObjectToCategoriesCountMap(user.categoriesCount)
   return user
 }
