@@ -25,6 +25,7 @@ export async function createArticle(
       const userRef = firestore.collection(`users`).doc(uid)
       const userSnapShot = await transaction.get(userRef)
       const user = userSnapShot.data() as User
+      user.convertObjectToCategoriesCountMap(user.categoriesCount)
 
       // 設定するカテゴリの情報を取得
       // TODO: リファクタ、deleteでも同じことしている

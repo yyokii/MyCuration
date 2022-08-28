@@ -35,7 +35,7 @@ function AppInit() {
         // 且つ、usersコレクションにも存在しているか確認
         const isRegisterd = await checkIfRegistered(firebaseUser.uid)
 
-        let user: User
+        let user: User = new User()
         if (isRegisterd) {
           console.log('User is registered.')
           user = await fetchUser(firebaseUser.uid)
@@ -49,15 +49,15 @@ function AppInit() {
           }
         } else {
           console.log('User is not registered.')
-          user = {
-            uid: firebaseUser.uid,
-            identifierToken: ``,
-            isFinishedRegisterUserInfo: isRegisterd,
-            name: ``,
-            profileImageURL: googleProviderData.photoURL,
-            articlesCount: 0,
-            categoriesCount: new Map<string, number>(),
-          }
+          user = new User(
+            firebaseUser.uid,
+            ``,
+            isRegisterd,
+            ``,
+            googleProviderData.photoURL,
+            0,
+            new Map<string, number>(),
+          )
           if (router.isReady) {
             router.push('/onboarding')
           }
