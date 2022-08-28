@@ -35,6 +35,8 @@ export async function createArticle(
       category.id = categorySnapShot.id
 
       // ユーザーの投稿数、タグの利用回数、記事、の書き込み処理を行う
+      transaction.set(articleRef, article)
+
       transaction.update(categoryRef, {
         count: category.count + 1,
       })
@@ -46,8 +48,6 @@ export async function createArticle(
         articlesCount: user.articlesCount + 1,
         categoriesCount: categoriesCountObj,
       })
-
-      transaction.set(articleRef, article)
     })
 
     return article
@@ -60,7 +60,7 @@ export async function createArticle(
 export async function deleteArticle(uid: string, articleID: string) {
   try {
     await firestore.runTransaction(async (transaction) => {
-      const userRef = firestore.collection(`users`).doc(uid)
+      const userRef = firestore.collection(`users`).withConverter(userConverterForAdmin).doc(uid)
       const userSnapShot = await transaction.get(userRef)
       const user = userSnapShot.data() as User
 
@@ -73,7 +73,7 @@ export async function deleteArticle(uid: string, articleID: string) {
       const article = articleSnapShot.data() as Article
       article.id = articleSnapShot.id
 
-      // 設定されているタグの情報を取得
+      // 設定されているカテゴリの情報を取得
       const categoryRef = firestore.collection(`categories`).doc(article.category)
       const categorySnapShot = await transaction.get(categoryRef)
       const category = categorySnapShot.data() as Category
@@ -85,12 +85,16 @@ export async function deleteArticle(uid: string, articleID: string) {
         firestore.collection(`users`).doc(uid).collection(`articles`).doc(article.id),
       )
 
-      transaction.update(userRef, {
-        articlesCount: user.articlesCount - 1,
-      })
-
       transaction.update(categoryRef, {
         count: category.count - 1,
+      })
+
+      const currentSelectedCategoryCount = user.categoriesCount.get(article.category)
+      user.categoriesCount.set(article.category, currentSelectedCategoryCount - 1)
+      const categoriesCountObj = Object.fromEntries(user.categoriesCount)
+      transaction.update(userRef, {
+        articlesCount: user.articlesCount - 1,
+        categoriesCount: categoriesCountObj,
       })
     })
   } catch (error) {
