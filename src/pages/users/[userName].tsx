@@ -39,6 +39,7 @@ import { userState } from '../../states/user'
 import { fetchUser } from '../../lib/firebase-auth'
 import axios from 'axios'
 import CategoriesRatioList, { CategoriesRatio } from '../../components/CategoriesRatio'
+import NotFound from '../../components/NotFound'
 
 type Query = {
   userName: string
@@ -324,7 +325,7 @@ export default function UserShow() {
 
   return (
     <Layout>
-      {currentUser && (
+      {user ? (
         <Box>
           {/* プロフィール情報 */}
           <VStack spacing={4} align='center'>
@@ -401,6 +402,10 @@ export default function UserShow() {
             }}
             onClose={onCloseAddArticleModal}
           />
+        </Box>
+      ) : (
+        <Box p={4}>
+          <NotFound />
         </Box>
       )}
     </Layout>
