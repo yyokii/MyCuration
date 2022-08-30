@@ -16,6 +16,10 @@ firebase emulators:start
 
 `firebase emulators:export --force ./emulators`
 
+- Check rendering options
+
+`npx next build`
+
 ## 開発メモ
 
 - [React の StrictMode](https://nextjs-ja-translation-docs.vercel.app/docs/api-reference/next.config.js/react-strict-mode)を on にしている
