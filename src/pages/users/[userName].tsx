@@ -112,8 +112,11 @@ export default function UserShow() {
           displayUser = user
         }
       }
+      if (displayUser === null) {
+        return
+      }
       setUser(displayUser)
-      loadArticles(displayUser.uid, categories, true)
+      loadArticles(displayUser?.uid, categories, true)
     })()
   }, [currentUser, queryPath.userName])
 
