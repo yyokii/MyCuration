@@ -6,9 +6,9 @@ import {
   Text,
   Stack,
   useColorModeValue,
-  Circle,
   Flex,
   VStack,
+  IconButton,
 } from '@chakra-ui/react'
 import dayjs from 'dayjs'
 import { Article } from '../../types/article'
@@ -46,24 +46,23 @@ export default function Item(props: Props) {
         </Box>
         <Stack spacing={2}>
           {props.isCurrentUser && (
-            <Flex justifyContent='end' alignContent='center' mt={4}>
-              <Circle
-                mr={2}
-                size='24px'
-                bg='tomato'
-                color='white'
+            <Flex justifyContent='end' alignContent='center' mx={-basePadding}>
+              <IconButton
+                size='md'
+                variant='ghost'
+                colorScheme='teal'
+                aria-label='Edit'
                 onClick={() => props.onClickUpdae()}
-              >
-                <EditIcon />
-              </Circle>
-              <Circle
-                size='24px'
-                bg='tomato'
-                color='white'
+                icon={<EditIcon />}
+              />
+              <IconButton
+                size='md'
+                variant='ghost'
+                colorScheme='teal'
+                aria-label='Edit'
                 onClick={() => props.onClickDelete(props.article)}
-              >
-                <DeleteIcon />
-              </Circle>
+                icon={<DeleteIcon />}
+              />
             </Flex>
           )}
           {props.article.category !== '' && (
