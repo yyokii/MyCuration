@@ -106,15 +106,9 @@ export default function UserShow() {
       } else {
         // 他のユーザー
         const user = await fetchUserWithName(queryPath.userName)
-        if (user === undefined || user === null) {
-          // TODO: 対象ユーザーが存在しない場合のページ表示
-          console.log('ユーザーが存在しません')
-        } else {
+        if (user !== undefined || user !== null) {
           displayUser = user
         }
-      }
-      if (displayUser === null) {
-        return
       }
       setUser(displayUser)
       loadArticles(displayUser?.uid, categories, true)
