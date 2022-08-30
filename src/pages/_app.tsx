@@ -45,7 +45,6 @@ function AppInit() {
             console.log('Set token')
             user.identifierToken = token
             setUser(user)
-            router.push(`/users/${user.name}`)
           }
         } else {
           console.log('User is not registered.')
