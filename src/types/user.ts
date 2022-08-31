@@ -39,7 +39,6 @@ class User {
 const userConverter = {
   toFirestore(user: WithFieldValue<User>): DocumentData {
     return {
-      uid: user.uid,
       name: user.name,
       profileImageURL: user.profileImageURL,
       isFinishedRegisterUserInfo: user.isFinishedRegisterUserInfo,
@@ -67,7 +66,6 @@ const userConverterForAdmin = {
   toFirestore(user: User): FirebaseFirestore.DocumentData {
     const categoriesCountObj = Object.fromEntries(user.categoriesCount)
     return {
-      uid: user.uid,
       name: user.name,
       profileImageURL: user.profileImageURL,
       isFinishedRegisterUserInfo: user.isFinishedRegisterUserInfo,
