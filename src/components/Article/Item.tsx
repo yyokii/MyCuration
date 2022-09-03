@@ -72,7 +72,7 @@ export default function Item(props: Props) {
           )}
           <VStack align={'start'} spacing={0}>
             <Text color={'gray.500'}>
-              {dayjs(props.article.createdAt.toDate()).format('YYYY/MM/DD HH:mm')}
+              {dayjs(props.article.createdAt, 'YYYY-MM-DDThh:mm:ss').format('YYYY/MM/DD HH:mm')}
             </Text>
             <Heading
               color={useColorModeValue('gray.700', 'white')}

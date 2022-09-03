@@ -1,5 +1,5 @@
 import { firestore } from './firebase'
-import { User } from '../types/user'
+import { User, userConverter } from '../types/user'
 import { doc, collection, getDoc } from 'firebase/firestore'
 import { UserID } from '../types/userID'
 
@@ -15,7 +15,7 @@ export async function fetchUserWithName(name: string): Promise<User> {
   const userID = (userNameDoc.data() as UserID).uid
 
   // uidからユーザー情報を取得
-  const userDocRef = doc(collection(firestore, 'users'), userID)
+  const userDocRef = doc(collection(firestore, 'users'), userID).withConverter(userConverter)
   const userDoc = await getDoc(userDocRef)
 
   if (!userDoc.exists()) {
@@ -23,8 +23,5 @@ export async function fetchUserWithName(name: string): Promise<User> {
   }
 
   const user = userDoc.data() as User
-
-  user.uid = userDoc.id
-  user.convertObjectToCategoriesCountMap(user.categoriesCount)
   return user
 }
