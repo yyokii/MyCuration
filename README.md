@@ -2,9 +2,7 @@
 
 Firebase emulator
 
-```
-firebase emulators:start
-```
+`firebase emulators:start --import=./emulators`
 
 ## Commands
 
