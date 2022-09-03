@@ -1,23 +1,22 @@
 import { useRouter } from 'next/router'
-import { User } from '../../types/user'
+import { User, userConverter } from '../../types/user'
 import { Category } from '../../types/category'
 import { useEffect, useRef, useState } from 'react'
 import {
   collection,
   doc,
-  DocumentData,
   getDocs,
   limit,
+  onSnapshot,
   orderBy,
   query,
-  QuerySnapshot,
-  startAfter,
+  QueryDocumentSnapshot,
   updateDoc,
 } from 'firebase/firestore'
 import Layout from '../../components/Layout'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { toast } from 'react-toastify'
-import { Article } from '../../types/article'
+import { Article, articleConverter } from '../../types/article'
 import { firestore } from '../../lib/firebase'
 import { fetchUserWithName } from '../../lib/db'
 import Item from '../../components/Article/Item'
@@ -34,20 +33,101 @@ import {
 import { UpdateArticleModal } from '../../components/Modal/UpdateArticleModal'
 import { AddArticleModal } from '../../components/Modal/AddArticleModal'
 import { SimpleModal } from '../../components/Modal/SimpleModal'
-import { useSetRecoilState } from 'recoil'
-import { userState } from '../../states/user'
-import { fetchUser } from '../../lib/firebase-auth'
 import axios from 'axios'
 import CategoriesRatioList, { CategoriesRatio } from '../../components/CategoriesRatio'
 import NotFound from '../../components/NotFound'
+import { GetServerSideProps } from 'next'
+
+type Props = {
+  user: User
+  categories: Category[]
+  categoriesRatio: CategoriesRatio[]
+}
+
+const emptyProps: Props = {
+  user: null,
+  categories: [],
+  categoriesRatio: [],
+}
+
+const defaultArticleLimit = 100
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { userName } = context.query
+
+  if (typeof userName !== 'string') {
+    return {
+      props: {
+        ...emptyProps,
+      },
+    }
+  }
+
+  const categories = await loadCategories()
+
+  // Fetch user data
+  const user = await fetchUserWithName(userName)
+  if (!user) {
+    return {
+      props: {
+        ...emptyProps,
+      },
+    }
+  }
+
+  // Calculate categories ratio
+  const categoriesRatio = calcCategoriesRatio(user?.categoriesCount, user?.articlesCount)
+
+  return {
+    props: {
+      user: JSON.parse(JSON.stringify(user)),
+      categories: categories,
+      categoriesRatio: categoriesRatio,
+    },
+  }
+}
+
+async function loadCategories(): Promise<Category[]> {
+  const snapshot = await getDocs(query(collection(firestore, `categories`), orderBy('name')))
+
+  const fetchedCategories = snapshot.docs.map((doc) => {
+    const category = doc.data() as Category
+    category.id = doc.id
+    return category
+  })
+  return fetchedCategories
+}
+
+function calcCategoriesRatio(
+  categoriesCount: Map<string, number>,
+  articlesCount: number,
+): CategoriesRatio[] {
+  if (categoriesCount === undefined || categoriesCount === null) {
+    return []
+  }
+
+  let categories: CategoriesRatio[] = []
+
+  for (const [key, value] of categoriesCount) {
+    if (value === 0) {
+      continue
+    }
+    const ratio = Math.round((value / articlesCount) * 100)
+    categories.push({
+      name: key,
+      ratio: ratio,
+    })
+  }
+
+  return categories
+}
 
 type Query = {
   userName: string
 }
 
-export default function UserShow() {
+export default function UserShow(props: Props) {
   const { currentUser } = useCurrentUser()
-  const setSigninUser = useSetRecoilState(userState)
 
   const scrollContainerRef = useRef(null)
   const router = useRouter()
@@ -73,165 +153,54 @@ export default function UserShow() {
 
   // State
 
-  const [user, setUser] = useState<User>(null) // 本画面で表示する対象ユーザー
+  const [user, setUser] = useState<User>(props.user) // 本画面で表示する対象ユーザー
+  const [articles, setArticles] = useState<Article[]>([])
+  const [categories] = useState<Category[]>(props.categories)
+  const [categoriesRatio, setCategoriesRatio] = useState<CategoriesRatio[]>(props.categoriesRatio)
 
   const [isSending, setIsSending] = useState(false)
-  const [articles, setArticles] = useState<Article[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [categoriesRatio, setCategoriesRatio] = useState<CategoriesRatio[]>([])
-
   const [isPaginationFinished, setIsPaginationFinished] = useState(false)
   const [selectedArticle, setSelectedArticle] = useState<Article>(null)
+  const [aritcleLimit, setAritcleLimit] = useState<number>(defaultArticleLimit)
 
   // Effect
 
-  /**
-   * ログイン中のユーザー、URLのパスがが変割った際にユーザー情報と記事の取得を行う
-   * */
   useEffect(() => {
-    if (currentUser === null) {
-      return
-    }
+    const query = createArticlesBaseQuery(user?.uid, aritcleLimit)
+    const unsubscribe = onSnapshot(query, (querySnapshot) => {
+      const fetchedArticles = querySnapshot.docs.map((doc) => {
+        return configureArticle(doc, categories)
+      })
 
-    if (queryPath.userName === undefined) {
-      return
-    }
-
-    ;(async () => {
-      const categories = await loadCategories()
-      let displayUser = null
-      if (queryPath.userName === currentUser.name) {
-        // 自分のページ
-        displayUser = currentUser
-      } else {
-        // 他のユーザー
-        const user = await fetchUserWithName(queryPath.userName)
-        if (user !== undefined || user !== null) {
-          displayUser = user
-        }
-      }
-      setUser(displayUser)
-      loadArticles(displayUser?.uid, categories, true)
-    })()
-  }, [currentUser, queryPath.userName])
-
-  useEffect(() => {
-    setCategoriesRatio(calcCategoriesRatio(user?.categoriesCount, articles.length))
-    window.addEventListener('scroll', onScroll)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-    }
-  }, [articles, scrollContainerRef.current, isPaginationFinished])
-
-  async function loadArticles(uid: string, categories: Category[], isReload: boolean = false) {
-    const snapshot = await getDocs(createArticlesBaseQuery(uid))
-
-    if (snapshot.empty) {
-      setIsPaginationFinished(true)
-      return
-    }
-
-    appendArticles(snapshot, categories, isReload)
-  }
-
-  async function loadNextArticles(uid: string) {
-    if (articles.length === 0) {
-      return
-    }
-
-    const lastArticle = articles[articles.length - 1]
-    const snapshot = await getDocs(
-      query(createArticlesBaseQuery(uid), startAfter(lastArticle.createdAt)),
-    )
-
-    if (snapshot.empty) {
-      return
-    }
-
-    appendArticles(snapshot, categories)
-  }
-
-  function appendArticles(
-    snapshot: QuerySnapshot<DocumentData>,
-    categories: Category[],
-    isReload: boolean = false,
-  ) {
-    const fetchedArticles = snapshot.docs.map((doc) => {
-      const article = doc.data() as Article
-      article.id = doc.id
-
-      // Categoryの設定
-      if (article.category !== undefined && article.category !== null) {
-        const displayName = categories.find((category) => category.id === article.category).name
-        article.displayCategory = displayName
-      } else {
-        article.displayCategory = ''
-      }
-
-      return article
-    })
-
-    if (isReload) {
       setArticles(fetchedArticles)
-    } else {
-      setArticles(articles.concat(fetchedArticles))
-    }
-  }
+    })
+    return unsubscribe
+  }, [aritcleLimit])
 
-  function createArticlesBaseQuery(uid: string) {
+  useEffect(() => {
+    const reference = doc(collection(firestore, 'users'), user.uid).withConverter(userConverter)
+    const unsubscribe = onSnapshot(reference, (querySnapshot) => {
+      const user = querySnapshot.data() as User
+      const categoriesRatio = calcCategoriesRatio(user?.categoriesCount, user?.articlesCount)
+      setCategoriesRatio(categoriesRatio)
+      setUser(user)
+    })
+    return unsubscribe
+  }, [articles])
+
+  function createArticlesBaseQuery(uid: string, limitNum: number) {
     return query(
       collection(firestore, `users/${uid}/articles`),
       orderBy('createdAt', 'desc'),
-      limit(20),
-    )
+      limit(limitNum),
+    ).withConverter(articleConverter)
   }
 
-  async function loadCategories(): Promise<Category[]> {
-    const snapshot = await getDocs(query(collection(firestore, `categories`), orderBy('name')))
-
-    const fetchedCategories = snapshot.docs.map((doc) => {
-      const category = doc.data() as Category
-      category.id = doc.id
-      return category
-    })
-    setCategories(fetchedCategories)
-
-    return fetchedCategories
-  }
-
-  function calcCategoriesRatio(
-    categoriesCount: Map<string, number>,
-    articlesCount: number,
-  ): CategoriesRatio[] {
-    if (categoriesCount === undefined || categoriesCount === null) {
-      return []
-    }
-
-    let categories: CategoriesRatio[] = []
-
-    for (const [key, value] of categoriesCount) {
-      if (value === 0) {
-        continue
-      }
-      const ratio = Math.round((value / articlesCount) * 100)
-      categories.push({
-        name: key,
-        ratio: ratio,
-      })
-    }
-
-    return categories
-  }
-
-  /**
-   * ユーザー情報を更新する
-   *
-   * データの更新や削除があった場合に利用することで最新のユーザー情報を利用できる
-   */
-  async function updateSigninUser() {
-    let user = await fetchUser(currentUser.uid)
-    user.identifierToken = currentUser.identifierToken
-    setSigninUser(user)
+  function configureArticle(snapshot: QueryDocumentSnapshot, categories: Category[]): Article {
+    const article = snapshot.data() as Article
+    article.id = snapshot.id
+    article.configureDisplayCategory(categories)
+    return article
   }
 
   // Actions
@@ -240,7 +209,7 @@ export default function UserShow() {
     setIsSending(true)
 
     try {
-      await axios.post(
+      const { data } = await axios.post(
         '/api/article',
         {
           contentURL: url,
@@ -283,7 +252,6 @@ export default function UserShow() {
 
   async function onClickDelete(article: Article) {
     if (!isCurrentUser) {
-      // 他のユーザー情報を保持している場合
       return
     }
 
@@ -299,24 +267,6 @@ export default function UserShow() {
     }
   }
 
-  function onScroll() {
-    if (isPaginationFinished) {
-      return
-    }
-
-    const container = scrollContainerRef.current
-    if (container === null) {
-      return
-    }
-
-    const rect = container.getBoundingClientRect()
-    if (rect.top + rect.height > window.innerHeight) {
-      return
-    }
-
-    loadNextArticles(user.uid)
-  }
-
   return (
     <Layout>
       {user ? (
@@ -326,14 +276,14 @@ export default function UserShow() {
             <section className='text-center'>
               <Image
                 borderRadius='full'
-                src={user?.profileImageURL}
+                src={user.profileImageURL}
                 width={100}
                 height={100}
                 alt='user icon'
               />
             </section>
-            <h1 className='h4'>{user?.name}のページ</h1>
-            <Text>(記事数) {user?.articlesCount}</Text>
+            <h1 className='h4'>{user.name}のページ</h1>
+            <Text>(記事数) {user.articlesCount}</Text>
             <CategoriesRatioList categoriesRatio={categoriesRatio} />
             {isCurrentUser && (
               <Button colorScheme='teal' onClick={onOpenAddArticleModal}>
@@ -366,13 +316,11 @@ export default function UserShow() {
           </VStack>
           {selectedArticle !== null && (
             <SimpleModal
-              title={'この記事を削除しますか？'}
+              title={'Delete this article？'}
               message={`URL: ${selectedArticle.contentURL}`}
               isOpen={isOpenConfirmDeleteModal}
               onPositiveAction={async () => {
                 await onClickDelete(selectedArticle)
-                loadArticles(currentUser.uid, categories, true)
-                updateSigninUser()
               }}
               onClose={onCloseConfirmDeleteModal}
             />
@@ -383,16 +331,13 @@ export default function UserShow() {
             onClose={onCloseUpdateArticleModal}
             onUpdate={async (url: string, comment: string): Promise<void> => {
               await onUpdateItem(url, comment)
-              loadArticles(currentUser.uid, categories, true)
             }}
           />
           <AddArticleModal
             isOpen={isOpenAddArticleModal}
-            categories={categories}
+            categories={props.categories}
             onSubmit={async (url: string, comment: string, category: Category): Promise<void> => {
               await onSubmitItem(url, comment, category)
-              loadArticles(currentUser.uid, categories, true)
-              updateSigninUser()
             }}
             onClose={onCloseAddArticleModal}
           />

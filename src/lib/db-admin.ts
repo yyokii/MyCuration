@@ -1,22 +1,23 @@
 import { User, userConverterForAdmin } from '../types/user'
-import * as admin from 'firebase-admin'
 import { firestore } from './firebase_admin'
 import { Article } from '../types/article'
 import { Category } from '../types/category'
+import dayjs from 'dayjs'
 
 export async function createArticle(
   uid: string,
   contentURL: string,
   comment: string,
   categoryID: string,
-) {
+): Promise<Object> {
   const articleRef = firestore.collection(`users`).doc(uid).collection('articles').doc()
+  const currentDate = dayjs().toISOString()
   const article = {
     comment: comment,
     contentURL: contentURL,
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    createdAt: currentDate,
     category: categoryID,
-    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    updatedAt: currentDate,
   }
 
   try {
@@ -50,7 +51,14 @@ export async function createArticle(
       })
     })
 
-    return article
+    return {
+      id: articleRef.id,
+      comment: article.comment,
+      contentURL: article.contentURL,
+      createdAt: article.createdAt,
+      category: article.category,
+      updatedAt: article.updatedAt,
+    }
   } catch (error) {
     console.log(error)
     return error
