@@ -9,7 +9,7 @@ import {
 } from '@chakra-ui/react'
 import { collection, doc, getDoc, runTransaction } from 'firebase/firestore'
 import { useRouter } from 'next/router'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSetRecoilState } from 'recoil'
 import NormalButton from '../components/common/NormalButton'
 import Layout from '../components/Layout'
@@ -31,6 +31,12 @@ export default function Onboarding() {
   // Validation
   const isUserNameNotValid = userName.length >= 100
   const isInputError = isUserNameNotValid || isAlreadyRegistered
+
+  useEffect(() => {
+    if (currentUser && currentUser.isFinishedRegisterUserInfo) {
+      router.push(`/users/${currentUser.name}`)
+    }
+  }, [currentUser])
 
   async function onSubmitItem() {
     const userNamesCollection = collection(firestore, 'userNames')

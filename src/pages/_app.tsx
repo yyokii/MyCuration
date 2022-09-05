@@ -26,8 +26,6 @@ function AppInit() {
       console.log('called onIdTokenChanged')
 
       if (firebaseUser) {
-        console.log('Set user')
-
         const googleProviderData = firebaseUser.providerData.filter(
           (data) => data.providerId === 'google.com',
         )[0]
@@ -44,14 +42,13 @@ function AppInit() {
           if (token) {
             console.log('Set token')
             user.identifierToken = token
-            setUser(user)
           }
         } else {
-          console.log('User is not registered.')
+          console.log('User detail is not registered.')
           user = new User(
             firebaseUser.uid,
             ``,
-            isRegisterd,
+            false,
             ``,
             googleProviderData.photoURL,
             0,
@@ -66,7 +63,6 @@ function AppInit() {
       } else {
         console.log('User is not signed in')
         setUser(null)
-        router.push('/')
       }
     })
 
