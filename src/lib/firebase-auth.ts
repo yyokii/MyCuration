@@ -3,7 +3,7 @@ import { collection, doc, getDoc, QueryDocumentSnapshot } from 'firebase/firesto
 import { User, userConverter } from '../types/user'
 import { auth, firestore } from './firebase'
 
-export async function checkIfRegistered(uid: string) {
+async function checkIfRegistered(uid: string) {
   const userDocRef = doc(firestore, 'users', uid)
   const snapshot = await getDoc(userDocRef)
 
@@ -27,4 +27,4 @@ async function signOut(): Promise<void> {
   return signOutCurrentUser(auth)
 }
 
-export { fetchUser, signOut }
+export { checkIfRegistered, fetchUser, signOut }
