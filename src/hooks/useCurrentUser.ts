@@ -6,10 +6,10 @@ import { userState } from '../states/user'
  */
 export function useCurrentUser() {
   const currentUser = useRecoilValue(userState)
-  const isAuthChecking = currentUser === undefined
+  const isNotSignedIn = currentUser == null
 
   return {
     currentUser,
-    isAuthChecking,
+    isNotSignedIn,
   }
 }
