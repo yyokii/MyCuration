@@ -70,7 +70,6 @@ export default function Onboarding() {
        identifierToken is not set because it is not necessary.
        */
       transaction.set(userRef, {
-        isFinishedRegisterUserInfo: true,
         name: userName,
         profileImageURL: currentUser.profileImageURL,
         articlesCount: 0,
