@@ -1,5 +1,5 @@
 import { User, userConverterForAdmin } from '../types/user'
-import { firestore } from './firebase_admin'
+import { firestore, auth } from './firebase_admin'
 import { Article } from '../types/article'
 import { Category } from '../types/category'
 import dayjs from 'dayjs'
@@ -106,7 +106,35 @@ export async function deleteArticle(uid: string, articleID: string) {
       })
     })
   } catch (error) {
+    // TODO: ここでそのまま流すならcatchしなくてもいいと思う
     console.log(error)
     return error
   }
+}
+
+/**
+ * Delete user data
+ *
+ * Delete user from firebase authentification, userNames collection, and update users collection.
+ *
+ * @param uid: User ID
+ * @returns
+ */
+export async function deleteCurrentUser(uid: string) {
+  await auth.deleteUser(uid).catch((error) => {
+    console.log(error)
+    return error
+  })
+
+  await firestore.runTransaction(async (transaction) => {
+    const userRef = firestore.collection(`users`).withConverter(userConverterForAdmin).doc(uid)
+    const userSnapShot = await transaction.get(userRef)
+    const user = userSnapShot.data() as User
+
+    transaction.delete(firestore.collection(`userNames`).doc(user.name))
+
+    transaction.update(userRef, {
+      isDeleted: true,
+    })
+  })
 }
