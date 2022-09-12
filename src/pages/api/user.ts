@@ -4,7 +4,7 @@ import {
   sendNotImplementedErrorResponse,
   sendUnauthorizedErrorResponse,
 } from '../../utils/api/sendErrorResponse'
-import { createArticle, deleteCurrentUser } from '../../lib/db-admin'
+import { deleteCurrentUser } from '../../lib/db-admin'
 import { authenticate } from '../../utils/api/authenticate'
 import { FirebaseError } from '@firebase/util'
 
