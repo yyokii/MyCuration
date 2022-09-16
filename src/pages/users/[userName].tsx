@@ -37,6 +37,8 @@ import axios from 'axios'
 import CategoriesRatioList, { CategoriesRatio } from '../../components/CategoriesRatio'
 import NotFound from '../../components/NotFound'
 import { GetServerSideProps } from 'next'
+import { RepositoryFactory } from '../../repository/repository'
+import { ArticleRepository } from '../../repository/articleRepository'
 
 type Props = {
   user: User
@@ -134,6 +136,9 @@ export default function UserShow(props: Props) {
   const queryPath = router.query as Query
   const isCurrentUser = currentUser?.name === queryPath.userName
 
+  // Repository
+  const articleRepository: ArticleRepository = RepositoryFactory.get('article')
+
   // モーダルの表示管理
   const {
     isOpen: isOpenUpdateArticleModal,
@@ -209,20 +214,7 @@ export default function UserShow(props: Props) {
     setIsSending(true)
 
     try {
-      const { data } = await axios.post(
-        '/api/article',
-        {
-          contentURL: url,
-          comment: comment,
-          category: category ? category.id : null,
-        },
-        {
-          headers: {
-            'Content-Type': 'text/plain',
-            Authorization: `Bearer ${currentUser.identifierToken}`,
-          },
-        },
-      )
+      await articleRepository.create(url, comment, category)
     } catch (error) {
       console.log(error)
     }

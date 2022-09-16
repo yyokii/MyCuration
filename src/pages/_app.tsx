@@ -41,6 +41,7 @@ function AppInit() {
           const token = await firebaseUser.getIdToken()
           if (token) {
             console.log('Set token')
+            // TODO: Repository instanceでtokenを設定しているのでidentifierは不要かもしれない
             user.identifierToken = token
           }
         } else {

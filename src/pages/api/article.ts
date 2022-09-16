@@ -9,7 +9,7 @@ import { authenticate } from '../../utils/api/authenticate'
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === 'POST') {
     try {
-      const body = JSON.parse(req.body)
+      const body = JSON.parse(JSON.stringify(req.body))
       const article = await createArticle(
         req.query.uid as string,
         body.contentURL,

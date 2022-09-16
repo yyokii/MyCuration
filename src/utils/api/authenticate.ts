@@ -3,6 +3,14 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { auth } from '../../lib/firebase_admin'
 import { sendUnauthorizedErrorResponse } from './sendErrorResponse'
 
+/**
+ *
+ * Extracts user token from request header, verifies it and set it to request data.
+ * https://www.dingran.me/next-js-authentication/
+ *
+ * @param handler
+ * @returns
+ */
 export function authenticate(
   handler: (req: NextApiRequest, res: NextApiResponse) => {},
 ): (req: NextApiRequest, res: NextApiResponse) => {} {
