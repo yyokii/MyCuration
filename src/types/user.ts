@@ -5,7 +5,6 @@ import { DocumentData, QueryDocumentSnapshot, WithFieldValue } from '@firebase/f
  */
 class User {
   uid: string
-  identifierToken: string
   isFinishedRegisterUserInfo: boolean // true: ユーザー情報登録が完了している, false: ユーザー情報登録がまだ完了していない
   name: string
   profileImageURL: string
@@ -14,7 +13,6 @@ class User {
 
   constructor(
     uid: string = '',
-    identifierToken: string = '',
     isFinishedRegisterUserInfo: boolean = false,
     name: string = '',
     profileImageURL: string = '',
@@ -22,7 +20,6 @@ class User {
     categoriesCount: Map<string, number> = new Map(),
   ) {
     this.uid = uid
-    this.identifierToken = identifierToken
     this.isFinishedRegisterUserInfo = isFinishedRegisterUserInfo
     this.name = name
     this.profileImageURL = profileImageURL
@@ -50,7 +47,6 @@ const userConverter = {
     const data = snapshot.data()
     const user = new User(
       snapshot.id,
-      '',
       data.isFinishedRegisterUserInfo,
       data.name,
       data.profileImageURL,
@@ -77,7 +73,6 @@ const userConverterForAdmin = {
     const data = snapshot.data()
     const user = new User(
       snapshot.id,
-      '',
       data.isFinishedRegisterUserInfo,
       data.name,
       data.profileImageURL,

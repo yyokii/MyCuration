@@ -37,18 +37,10 @@ function AppInit() {
         if (isRegisterd) {
           console.log('User is registered.')
           user = await fetchUser(firebaseUser.uid)
-
-          const token = await firebaseUser.getIdToken()
-          if (token) {
-            console.log('Set token')
-            // TODO: Repository instanceでtokenを設定しているのでidentifierは不要かもしれない
-            user.identifierToken = token
-          }
         } else {
           console.log('User detail is not registered.')
           user = new User(
             firebaseUser.uid,
-            ``,
             false,
             ``,
             googleProviderData.photoURL,
