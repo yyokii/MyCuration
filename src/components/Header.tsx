@@ -1,9 +1,7 @@
-import { ReactNode } from 'react'
 import {
   Box,
   Flex,
   HStack,
-  Link,
   IconButton,
   useDisclosure,
   useColorModeValue,
@@ -11,24 +9,18 @@ import {
   Stack,
 } from '@chakra-ui/react'
 import { HamburgerIcon, CloseIcon, AddIcon } from '@chakra-ui/icons'
-import { signOut } from '../lib/firebase-auth'
 
-interface MenuContent {
+type Props = {
+  menuContents: MenuContent[]
+}
+
+export interface MenuContent {
   title: string
   action: () => void
 }
 
-export default function Header() {
+export default function Header(props: Props) {
   const { isOpen, onOpen, onClose } = useDisclosure()
-
-  const menuContents: MenuContent[] = [
-    {
-      title: 'Sign out',
-      action: async () => {
-        await signOut()
-      },
-    },
-  ]
 
   return (
     <>
@@ -50,7 +42,7 @@ export default function Header() {
             <Spacer />
             <Box pb={4}>
               <Stack as={'nav'} spacing={4}>
-                {menuContents.map((menu) => (
+                {props.menuContents.map((menu) => (
                   <Box key={menu.title} onClick={menu.action}>
                     {menu.title}
                   </Box>

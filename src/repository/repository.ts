@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios'
 import { ArticleRepositoryImpl } from './articleRepository'
-import { UserRepository } from './userRepository'
+import { UserRepositoryImpl } from './userRepository'
 import { auth } from '../lib/firebase'
 
 const baseAxios = axios.create({
@@ -28,7 +28,7 @@ interface repositoryObject {
 
 const repositories: repositoryObject = {
   article: new ArticleRepositoryImpl(baseAxios, '/api/article'),
-  users: new UserRepository(baseAxios, '/api/users'),
+  user: new UserRepositoryImpl(baseAxios, '/api/user'),
 }
 
 export const RepositoryFactory = {
