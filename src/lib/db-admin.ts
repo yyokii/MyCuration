@@ -120,11 +120,8 @@ export async function deleteArticle(uid: string, articleID: string) {
  * @param uid: User ID
  * @returns
  */
-export async function deleteCurrentUser(uid: string) {
-  await auth.deleteUser(uid).catch((error) => {
-    console.log(error)
-    return error
-  })
+export async function deleteCurrentUser(uid: string): Promise<void> {
+  await auth.deleteUser(uid)
 
   await firestore.runTransaction(async (transaction) => {
     const userRef = firestore.collection(`users`).withConverter(userConverterForAdmin).doc(uid)

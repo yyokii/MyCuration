@@ -1,7 +1,11 @@
 import { AxiosInstance } from 'axios'
 import { Repository } from './repository'
 
-export class UserRepository implements Repository {
+export interface UserRepository extends Repository {
+  delete(): Promise<void>
+}
+
+export class UserRepositoryImpl implements UserRepository {
   readonly axios: AxiosInstance
   readonly path: string
 
@@ -10,9 +14,7 @@ export class UserRepository implements Repository {
     this.path = path
   }
 
-  get(data: object) {
-    return this.axios.get(this.path, {
-      params: { ...data },
-    })
+  async delete(): Promise<void> {
+    return await this.axios.delete(this.path)
   }
 }
