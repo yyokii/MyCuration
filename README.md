@@ -34,6 +34,9 @@ Firebase emulator
   - [java](https://www.azul.com/downloads/?os=macos&architecture=arm-64-bit&package=jdk)をインストール
 - spread-attributes: TSX でのオブジェクトの展開
   - https://ja.reactjs.org/docs/jsx-in-depth.html#spread-attributes
+- null と undefined の判別について
+  - > == null を使って undefined と null を両方ともチェックすることを推奨します。一般的に 2 つを区別する必要はありません。
+  - https://typescript-jp.gitbook.io/deep-dive/recap/null-undefined
 
 ## エラーや警告
 
