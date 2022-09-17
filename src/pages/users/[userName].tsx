@@ -33,7 +33,6 @@ import {
 import { UpdateArticleModal } from '../../components/Modal/UpdateArticleModal'
 import { AddArticleModal } from '../../components/Modal/AddArticleModal'
 import { SimpleModal } from '../../components/Modal/SimpleModal'
-import axios from 'axios'
 import CategoriesRatioList, { CategoriesRatio } from '../../components/CategoriesRatio'
 import NotFound from '../../components/NotFound'
 import { GetServerSideProps } from 'next'
@@ -248,12 +247,7 @@ export default function UserShow(props: Props) {
     }
 
     try {
-      await axios.delete(`/api/article/${article.id}`, {
-        headers: {
-          'Content-Type': 'text/plain',
-          Authorization: `Bearer ${currentUser.identifierToken}`,
-        },
-      })
+      await articleRepository.delete(article.id)
     } catch (error) {
       console.log(error)
     }
