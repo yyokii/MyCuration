@@ -1,6 +1,5 @@
 import axios, { AxiosInstance } from 'axios'
-import { useCurrentUser } from '../hooks/useCurrentUser'
-import { ArticleRepository } from './articleRepository'
+import { ArticleRepositoryImpl } from './articleRepository'
 import { UserRepository } from './userRepository'
 import { auth } from '../lib/firebase'
 
@@ -28,7 +27,7 @@ interface repositoryObject {
 }
 
 const repositories: repositoryObject = {
-  article: new ArticleRepository(baseAxios, '/api/article'),
+  article: new ArticleRepositoryImpl(baseAxios, '/api/article'),
   users: new UserRepository(baseAxios, '/api/users'),
 }
 
