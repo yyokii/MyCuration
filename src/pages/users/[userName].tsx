@@ -182,6 +182,9 @@ export default function UserShow(props: Props) {
   }, [aritcleLimit])
 
   useEffect(() => {
+    if (user == null) {
+      return
+    }
     const reference = doc(collection(firestore, 'users'), user.uid).withConverter(userConverter)
     const unsubscribe = onSnapshot(reference, (querySnapshot) => {
       const user = querySnapshot.data() as User
