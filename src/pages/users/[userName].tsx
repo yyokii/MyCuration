@@ -214,20 +214,20 @@ export default function UserShow(props: Props) {
 
     try {
       await articleRepository.create(url, comment, category)
+
+      setIsSending(false)
+      toast.success('追加しました。', {
+        position: 'bottom-left',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      })
     } catch (error) {
       console.log(error)
     }
-
-    setIsSending(false)
-    toast.success('追加しました。', {
-      position: 'bottom-left',
-      autoClose: 5000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-    })
   }
 
   async function onUpdateItem(url: string, comment: string) {
