@@ -54,7 +54,6 @@ export default function Onboarding() {
 
     const user: User = new User(
       currentUser.uid,
-      '',
       true,
       userName,
       currentUser.profileImageURL,
@@ -64,11 +63,7 @@ export default function Onboarding() {
 
     setIsSending(true)
     await runTransaction(firestore, async (transaction) => {
-      /*
-       Set user data
-
-       identifierToken is not set because it is not necessary.
-       */
+      // Set user data
       transaction.set(userRef, {
         name: userName,
         profileImageURL: currentUser.profileImageURL,
@@ -78,12 +73,6 @@ export default function Onboarding() {
       transaction.set(userNamesRef, {
         uid: currentUser.uid,
       })
-
-      const token = await auth.currentUser.getIdToken()
-      if (token) {
-        user.identifierToken = token
-        setUser(user)
-      }
     }).catch((error) => {
       console.log(error)
     })
