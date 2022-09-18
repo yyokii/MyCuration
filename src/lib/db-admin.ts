@@ -3,6 +3,7 @@ import { firestore, auth } from './firebase_admin'
 import { Article } from '../types/article'
 import { Category } from '../types/category'
 import dayjs from 'dayjs'
+import { DBError } from '../types/baseError'
 
 export async function createArticle(
   uid: string,
@@ -60,8 +61,7 @@ export async function createArticle(
       updatedAt: article.updatedAt,
     }
   } catch (error) {
-    console.log(error)
-    return error
+    throw new DBError(error)
   }
 }
 
@@ -106,9 +106,7 @@ export async function deleteArticle(uid: string, articleID: string) {
       })
     })
   } catch (error) {
-    // TODO: ここでそのまま流すならcatchしなくてもいいと思う
-    console.log(error)
-    return error
+    throw new DBError(error)
   }
 }
 
@@ -121,17 +119,21 @@ export async function deleteArticle(uid: string, articleID: string) {
  * @returns
  */
 export async function deleteCurrentUser(uid: string): Promise<void> {
-  await auth.deleteUser(uid)
+  try {
+    await auth.deleteUser(uid)
 
-  await firestore.runTransaction(async (transaction) => {
-    const userRef = firestore.collection(`users`).withConverter(userConverterForAdmin).doc(uid)
-    const userSnapShot = await transaction.get(userRef)
-    const user = userSnapShot.data() as User
+    await firestore.runTransaction(async (transaction) => {
+      const userRef = firestore.collection(`users`).withConverter(userConverterForAdmin).doc(uid)
+      const userSnapShot = await transaction.get(userRef)
+      const user = userSnapShot.data() as User
 
-    transaction.delete(firestore.collection(`userNames`).doc(user.name))
+      transaction.delete(firestore.collection(`userNames`).doc(user.name))
 
-    transaction.update(userRef, {
-      isDeleted: true,
+      transaction.update(userRef, {
+        isDeleted: true,
+      })
     })
-  })
+  } catch (error) {
+    throw new DBError(error)
+  }
 }
