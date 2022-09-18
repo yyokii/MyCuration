@@ -1,6 +1,10 @@
 export abstract class CustomBaseError extends Error {
   private error: Error | undefined
+
+  // Message of Error interface
   message: string
+
+  // Messsage displayed to the user
   localizedMessage: string
 
   constructor(e?: Error) {
