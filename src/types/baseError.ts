@@ -1,3 +1,9 @@
+/**
+ * Base error class
+ *
+ * https://future-architect.github.io/typescript-guide/exception.html
+ * https://ja.javascript.info/custom-errors
+ */
 export abstract class CustomBaseError extends Error {
   private error: Error | undefined
 
@@ -26,6 +32,14 @@ export abstract class CustomBaseError extends Error {
 }
 
 export class DBError extends CustomBaseError {
+  constructor(e?: Error) {
+    super(e)
+    this.localizedMessage =
+      'Sorry, an error occurred while processing your request. Please try again later.'
+  }
+}
+
+export class OtherError extends CustomBaseError {
   constructor(e?: Error) {
     super(e)
     this.localizedMessage =

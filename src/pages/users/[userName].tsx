@@ -64,27 +64,36 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     }
   }
 
-  const categories = await loadCategories()
+  try {
+    const categories = await loadCategories()
 
-  // Fetch user data
-  const user = await fetchUserWithName(userName)
-  if (!user) {
+    // Fetch user data
+    const user = await fetchUserWithName(userName)
+    if (!user) {
+      return {
+        props: {
+          ...emptyProps,
+        },
+      }
+    }
+
+    // Calculate categories ratio
+    const categoriesRatio = calcCategoriesRatio(user?.categoriesCount, user?.articlesCount)
+
+    return {
+      props: {
+        user: JSON.parse(JSON.stringify(user)),
+        categories: categories,
+        categoriesRatio: categoriesRatio,
+      },
+    }
+  } catch (error) {
+    console.error(error)
     return {
       props: {
         ...emptyProps,
       },
     }
-  }
-
-  // Calculate categories ratio
-  const categoriesRatio = calcCategoriesRatio(user?.categoriesCount, user?.articlesCount)
-
-  return {
-    props: {
-      user: JSON.parse(JSON.stringify(user)),
-      categories: categories,
-      categoriesRatio: categoriesRatio,
-    },
   }
 }
 
