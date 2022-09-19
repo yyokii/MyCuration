@@ -38,6 +38,9 @@ import NotFound from '../../components/NotFound'
 import { GetServerSideProps } from 'next'
 import { RepositoryFactory } from '../../repository/repository'
 import { ArticleRepository } from '../../repository/articleRepository'
+import { UserRepository } from '../../repository/userRepository'
+import NormalButton from '../../components/common/NormalButton'
+import { signOut } from '../../lib/firebase-auth'
 
 type Props = {
   user: User
@@ -146,6 +149,7 @@ export default function UserShow(props: Props) {
 
   // Repository
   const articleRepository: ArticleRepository = RepositoryFactory.get('article')
+  const userRepository: UserRepository = RepositoryFactory.get('user')
 
   // モーダルの表示管理
   const {
@@ -265,6 +269,23 @@ export default function UserShow(props: Props) {
     }
   }
 
+  async function onClickSignOut() {
+    try {
+      await signOut()
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  async function onClickDeleteAccount() {
+    try {
+      await userRepository.delete()
+      router.push('/')
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   return (
     <Layout>
       {user ? (
@@ -284,9 +305,15 @@ export default function UserShow(props: Props) {
             <Text>(記事数) {user.articlesCount}</Text>
             <CategoriesRatioList categoriesRatio={categoriesRatio} />
             {isCurrentUser && (
-              <Button colorScheme='teal' onClick={onOpenAddArticleModal}>
-                Add Article
-              </Button>
+              <VStack spacing={4} align='center'>
+                <NormalButton title='Add' isSending={isSending} onClick={onOpenAddArticleModal} />
+                <NormalButton title='Sign out' isSending={isSending} onClick={onClickSignOut} />
+                <NormalButton
+                  title='Delete account'
+                  isSending={isSending}
+                  onClick={onClickDeleteAccount}
+                />
+              </VStack>
             )}
           </VStack>
           {/* 記事一覧 */}
