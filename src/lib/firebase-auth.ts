@@ -1,24 +1,18 @@
 import { signOut as signOutCurrentUser } from 'firebase/auth'
-import { collection, doc, getDoc } from 'firebase/firestore'
-import { User } from '../types/user'
+import { collection, doc, getDoc, QueryDocumentSnapshot } from 'firebase/firestore'
+import { User, userConverter } from '../types/user'
 import { auth, firestore } from './firebase'
 
-export async function checkIfRegistered(uid: string) {
+async function checkIfRegistered(uid: string) {
   const userDocRef = doc(firestore, 'users', uid)
   const snapshot = await getDoc(userDocRef)
 
-  if (snapshot.exists()) {
-    console.log('ユーザー情報登録済みのユーザーです')
-    return true
-  } else {
-    console.log('ユーザー情報登録がまだ登録されていません')
-    return false
-  }
+  return snapshot.exists()
 }
 
 async function fetchUser(uid: string): Promise<User> {
   // uidからユーザー情報を取得
-  const userDocRef = doc(collection(firestore, 'users'), uid)
+  const userDocRef = doc(collection(firestore, 'users'), uid).withConverter(userConverter)
   const userDoc = await getDoc(userDocRef)
 
   if (!userDoc.exists()) {
@@ -26,7 +20,6 @@ async function fetchUser(uid: string): Promise<User> {
   }
 
   const user = userDoc.data() as User
-  user.uid = userDoc.id
   return user
 }
 
@@ -34,4 +27,4 @@ async function signOut(): Promise<void> {
   return signOutCurrentUser(auth)
 }
 
-export { fetchUser, signOut }
+export { checkIfRegistered, fetchUser, signOut }
