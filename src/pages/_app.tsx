@@ -26,8 +26,6 @@ function AppInit() {
       console.log('called onIdTokenChanged')
 
       if (firebaseUser) {
-        console.log('Set user')
-
         const googleProviderData = firebaseUser.providerData.filter(
           (data) => data.providerId === 'google.com',
         )[0]
@@ -35,28 +33,20 @@ function AppInit() {
         // 且つ、usersコレクションにも存在しているか確認
         const isRegisterd = await checkIfRegistered(firebaseUser.uid)
 
-        let user: User
+        let user: User = new User()
         if (isRegisterd) {
           console.log('User is registered.')
           user = await fetchUser(firebaseUser.uid)
-
-          const token = await firebaseUser.getIdToken()
-          if (token) {
-            console.log('Set token')
-            user.identifierToken = token
-            setUser(user)
-            router.push(`/users/${user.name}`)
-          }
         } else {
-          console.log('User is not registered.')
-          user = {
-            uid: firebaseUser.uid,
-            identifierToken: ``,
-            isFinishedRegisterUserInfo: isRegisterd,
-            name: ``,
-            profileImageURL: googleProviderData.photoURL,
-            articlesCount: 0,
-          }
+          console.log('User detail is not registered.')
+          user = new User(
+            firebaseUser.uid,
+            false,
+            ``,
+            googleProviderData.photoURL,
+            0,
+            new Map<string, number>(),
+          )
           if (router.isReady) {
             router.push('/onboarding')
           }
@@ -66,7 +56,6 @@ function AppInit() {
       } else {
         console.log('User is not signed in')
         setUser(null)
-        router.push('/')
       }
     })
 

@@ -9,7 +9,7 @@ import {
 } from '@chakra-ui/react'
 import { collection, doc, getDoc, runTransaction } from 'firebase/firestore'
 import { useRouter } from 'next/router'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSetRecoilState } from 'recoil'
 import NormalButton from '../components/common/NormalButton'
 import Layout from '../components/Layout'
@@ -32,6 +32,12 @@ export default function Onboarding() {
   const isUserNameNotValid = userName.length >= 100
   const isInputError = isUserNameNotValid || isAlreadyRegistered
 
+  useEffect(() => {
+    if (currentUser && currentUser.isFinishedRegisterUserInfo) {
+      router.push(`/users/${currentUser.name}`)
+    }
+  }, [currentUser])
+
   async function onSubmitItem() {
     const userNamesCollection = collection(firestore, 'userNames')
 
@@ -46,24 +52,19 @@ export default function Onboarding() {
     const userRef = doc(collection(firestore, 'users'), currentUser.uid)
     const userNamesRef = doc(userNamesCollection, userName)
 
-    const user: User = {
-      isFinishedRegisterUserInfo: true,
-      name: userName,
-      profileImageURL: currentUser.profileImageURL,
-      articlesCount: 0,
-      uid: currentUser.uid,
-      identifierToken: '',
-    }
+    const user: User = new User(
+      currentUser.uid,
+      true,
+      userName,
+      currentUser.profileImageURL,
+      0,
+      new Map<string, number>(),
+    )
 
     setIsSending(true)
     await runTransaction(firestore, async (transaction) => {
-      /*
-       Set user data
-
-       identifierToken is not set because it is not necessary.
-       */
+      // Set user data
       transaction.set(userRef, {
-        isFinishedRegisterUserInfo: true,
         name: userName,
         profileImageURL: currentUser.profileImageURL,
         articlesCount: 0,
@@ -72,12 +73,6 @@ export default function Onboarding() {
       transaction.set(userNamesRef, {
         uid: currentUser.uid,
       })
-
-      const token = await auth.currentUser.getIdToken()
-      if (token) {
-        user.identifierToken = token
-        setUser(user)
-      }
     }).catch((error) => {
       console.log(error)
     })
