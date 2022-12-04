@@ -79,7 +79,7 @@ export default function Item(props: Props) {
               fontFamily={'body'}
               pt={0}
             >
-              {props.article.contentURL}
+              {props.article.title}
             </Heading>
           </VStack>
           <Text color={'gray.500'} noOfLines={2}>
