@@ -23,7 +23,7 @@ export default function Onboarding() {
   const router = useRouter()
   const initialRef = useRef()
   const { currentUser } = useCurrentUser()
-  const setUser = useSetRecoilState(userState)
+  const setUser = useSetRecoilState(userState) // TODO: 使ってない
   const [userName, setUserName] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false)
@@ -83,7 +83,7 @@ export default function Onboarding() {
 
   function onChangeUserName(name: string) {
     setUserName(name)
-    setIsAlreadyRegistered(false)
+    setIsAlreadyRegistered(false) // TODO: ここでfalse入れる必要あるの？
   }
 
   return (
