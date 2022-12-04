@@ -7,7 +7,7 @@ class Article {
   contentURL: string
   createdAt: string
   category: string
-  displayCategory: string // This is used for display purpose.
+  categoryData: Category // This is used for display purpose.
   updatedAt: string
 
   constructor(
@@ -16,7 +16,7 @@ class Article {
     contentURL: string,
     createdAt: string,
     category: string,
-    displayCategory: string,
+    categoryData: Category,
     updatedAt: string,
   ) {
     this.id = id
@@ -24,13 +24,13 @@ class Article {
     this.contentURL = contentURL
     this.createdAt = createdAt
     this.category = category
-    this.displayCategory = displayCategory
+    this.categoryData = categoryData
     this.updatedAt = updatedAt
   }
 
-  configureDisplayCategory(categories: Category[]) {
-    const displayName = categories.find((category) => category.id === this.category).name
-    this.displayCategory = displayName
+  configureCategoryData(categories: Category[]) {
+    const categoryData: Category = categories.find((category) => category.id === this.category)
+    this.categoryData = categoryData
   }
 }
 
@@ -52,7 +52,7 @@ const articleConverter = {
       data.contentURL,
       data.createdAt,
       data.category,
-      '',
+      null,
       data.updatedAt,
     )
     return article
