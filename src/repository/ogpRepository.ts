@@ -1,19 +1,6 @@
 import { AxiosInstance } from 'axios'
+import { OGP } from '../types/ogp'
 import { Repository } from './repository'
-
-class OGP {
-  readonly url: string
-  readonly title: string
-  readonly description: string
-  readonly image: string
-
-  constructor(url: string, title: string, description: string, image: string) {
-    this.url = url
-    this.title = title
-    this.description = description
-    this.image = image
-  }
-}
 
 export interface OGPRepository extends Repository {
   get(url: string): Promise<OGP>
