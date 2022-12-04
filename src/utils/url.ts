@@ -5,7 +5,6 @@ export function isValidUrl(url: string): boolean {
     console.log('📝 isValidURL 2')
     return u.protocol.startsWith('http') || u.protocol.startsWith('https')
   } catch (e) {
-    console.log(e)
     return false
   }
 }
