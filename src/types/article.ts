@@ -8,6 +8,7 @@ class Article {
   createdAt: string
   category: string
   categoryData: Category // This is used for display purpose.
+  title: string
   updatedAt: string
 
   constructor(
@@ -17,6 +18,7 @@ class Article {
     createdAt: string,
     category: string,
     categoryData: Category,
+    title: string,
     updatedAt: string,
   ) {
     this.id = id
@@ -25,6 +27,7 @@ class Article {
     this.createdAt = createdAt
     this.category = category
     this.categoryData = categoryData
+    this.title = title
     this.updatedAt = updatedAt
   }
 
@@ -53,6 +56,7 @@ const articleConverter = {
       data.createdAt,
       data.category,
       null,
+      data.title,
       data.updatedAt,
     )
     return article
