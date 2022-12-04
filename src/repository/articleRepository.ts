@@ -28,6 +28,7 @@ export class ArticleRepositoryImpl implements ArticleRepository {
     return await this.axios.delete(`${this.path}/${artilcleId}`)
   }
 
+  // TODO: 未使用な気がするので削除する
   get(data: object) {
     return this.axios.get(this.path, {
       params: { ...data },
