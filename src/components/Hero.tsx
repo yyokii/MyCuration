@@ -1,7 +1,10 @@
 import { Container, Heading, Stack, Text, Button, Box } from '@chakra-ui/react'
 import Link from 'next/link'
+import { Router, useRouter } from 'next/router'
 
 export default function Hero() {
+  const router = useRouter()
+
   return (
     <Container maxW={'5xl'}>
       <Stack
@@ -26,18 +29,18 @@ export default function Hero() {
         </Text>
         <Stack spacing={6} direction={'row'}>
           <Box h='40px'>
-            <Link href='/signup' passHref>
-              <Button
-                as='a'
-                rounded={'full'}
-                px={6}
-                colorScheme={'orange'}
-                bg={'orange.400'}
-                _hover={{ bg: 'orange.500' }}
-              >
-                Get started
-              </Button>
-            </Link>
+            <Button
+              rounded={'full'}
+              px={6}
+              colorScheme={'orange'}
+              bg={'orange.400'}
+              _hover={{ bg: 'orange.500' }}
+              onClick={() => {
+                router.push('/signup')
+              }}
+            >
+              Get started
+            </Button>
           </Box>
         </Stack>
       </Stack>
