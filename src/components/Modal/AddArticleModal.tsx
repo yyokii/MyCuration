@@ -2,7 +2,6 @@ import {
   Button,
   FormControl,
   FormErrorMessage,
-  FormHelperText,
   FormLabel,
   Input,
   Modal,
@@ -17,6 +16,9 @@ import {
 import { useRef, useState } from 'react'
 import { CategorySelect } from '../Category/CategorySelect'
 import { Category } from '../../types/category'
+import { isValidUrl } from '../../utils/url'
+import { OGPRepository } from '../../repository/ogpRepository'
+import { RepositoryFactory } from '../../repository/repository'
 
 type Props = {
   isOpen: boolean
@@ -26,15 +28,28 @@ type Props = {
 }
 
 export function AddArticleModal(props: Props) {
+  // State
   const initialRef = useRef()
   const [contentURL, setContentURL] = useState('')
+  const [title, setTitle] = useState('')
   const [comment, setComment] = useState('')
-
   const [selectedCategory, setSelectedCategory] = useState<Category>(null)
 
-  const isContentURLError = contentURL === '' || contentURL.length > 2000
+  const ogpRepository: OGPRepository = RepositoryFactory.get('ogp')
 
+  // Flag
+  const isContentURLError = contentURL === '' || contentURL.length > 2000
   const canSubmit = !isContentURLError && selectedCategory !== null
+
+  async function onChangeInputURL(input: string) {
+    setContentURL(input)
+    if (isValidUrl(input)) {
+      const ogp = await ogpRepository.get(input)
+      if (ogp) {
+        setTitle(ogp.title)
+      }
+    }
+  }
 
   async function onSubmit() {
     props.onSubmit(contentURL, comment, selectedCategory)
@@ -66,13 +81,21 @@ export function AddArticleModal(props: Props) {
                     id='url'
                     placeholder='URL'
                     value={contentURL}
-                    onChange={(e) => setContentURL(e.target.value)}
+                    onChange={(e) => onChangeInputURL(e.target.value)}
                     required
                   />
                   {isContentURLError && (
                     <FormErrorMessage>URL length is 0 to 2000</FormErrorMessage>
                   )}
                 </FormControl>
+
+                <FormLabel htmlFor='url'>Title</FormLabel>
+                <Input
+                  id='title'
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                />
 
                 <FormLabel mt={4}>Category</FormLabel>
                 <CategorySelect
