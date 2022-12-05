@@ -246,11 +246,12 @@ export default function UserShow(props: Props) {
     }
   }
 
-  async function onUpdateItem(url: string, comment: string) {
+  async function onUpdateItem(url: string, title: string, comment: string) {
     setIsSending(true)
     const docRef = doc(firestore, `users/${currentUser.uid}/articles`, selectedArticle.id)
     await updateDoc(docRef, {
       contentURL: url,
+      title: title,
       comment: comment,
     })
     setIsSending(false)
@@ -354,8 +355,8 @@ export default function UserShow(props: Props) {
             article={selectedArticle}
             isOpen={isOpenUpdateArticleModal}
             onClose={onCloseUpdateArticleModal}
-            onUpdate={async (url: string, comment: string): Promise<void> => {
-              await onUpdateItem(url, comment)
+            onUpdate={async (url: string, title: string, comment: string): Promise<void> => {
+              await onUpdateItem(url, title, comment)
             }}
           />
           <AddArticleModal
