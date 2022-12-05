@@ -1,6 +1,5 @@
 import { Container, Heading, Stack, Text, Button, Box } from '@chakra-ui/react'
-import Link from 'next/link'
-import { Router, useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 
 export default function Hero() {
   const router = useRouter()
