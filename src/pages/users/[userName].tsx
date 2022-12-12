@@ -20,7 +20,7 @@ import { Article, articleConverter } from '../../types/article'
 import { firestore } from '../../lib/firebase'
 import { fetchUserWithName } from '../../lib/db'
 import Item from '../../components/Article/Item'
-import { Box, SimpleGrid, StackDivider, useDisclosure, VStack } from '@chakra-ui/react'
+import { Box, Center, SimpleGrid, useDisclosure, VStack } from '@chakra-ui/react'
 import { UpdateArticleModal } from '../../components/Modal/UpdateArticleModal'
 import { AddArticleModal } from '../../components/Modal/AddArticleModal'
 import { SimpleModal } from '../../components/Modal/SimpleModal'
@@ -32,6 +32,7 @@ import { ArticleRepository } from '../../repository/articleRepository'
 import { UserRepository } from '../../repository/userRepository'
 import { signOut } from '../../lib/firebase-auth'
 import UserProfile from '../../components/UserProfile'
+import AddContentButton from '../../components/AddContentButton'
 
 type Props = {
   user: User
@@ -283,13 +284,18 @@ export default function UserShow(props: Props) {
       {user ? (
         <Box>
           {/* プロフィール情報 */}
-          <UserProfile
-            name={user.name}
-            imageURL={user.profileImageURL}
-            articleCounts={user.articlesCount}
-          />
+          <Center bg={'orange.100'} py={4}>
+            <UserProfile
+              name={user.name}
+              imageURL={user.profileImageURL}
+              articleCounts={user.articlesCount}
+            />
+          </Center>
+          <Center mt={-5}>
+            <AddContentButton isLoading={isSending} onClick={onOpenAddArticleModal} />
+          </Center>
           {/* 記事一覧 */}
-          <VStack divider={<StackDivider borderColor='gray.200' />} spacing={4} align='center'>
+          <VStack spacing={4} align='center' my={8}>
             <Box className='col-12' ref={scrollContainerRef}>
               <SimpleGrid columns={{ sm: 2, md: 3 }} spacing='40px'>
                 {articles.map((article) => (
