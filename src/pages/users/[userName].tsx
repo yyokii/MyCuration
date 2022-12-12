@@ -20,27 +20,18 @@ import { Article, articleConverter } from '../../types/article'
 import { firestore } from '../../lib/firebase'
 import { fetchUserWithName } from '../../lib/db'
 import Item from '../../components/Article/Item'
-import {
-  Box,
-  Button,
-  Image,
-  SimpleGrid,
-  StackDivider,
-  Text,
-  useDisclosure,
-  VStack,
-} from '@chakra-ui/react'
+import { Box, SimpleGrid, StackDivider, useDisclosure, VStack } from '@chakra-ui/react'
 import { UpdateArticleModal } from '../../components/Modal/UpdateArticleModal'
 import { AddArticleModal } from '../../components/Modal/AddArticleModal'
 import { SimpleModal } from '../../components/Modal/SimpleModal'
-import CategoriesRatioList, { CategoriesRatio } from '../../components/CategoriesRatio'
+import { CategoriesRatio } from '../../components/CategoriesRatio'
 import NotFound from '../../components/NotFound'
 import { GetServerSideProps } from 'next'
 import { RepositoryFactory } from '../../repository/repository'
 import { ArticleRepository } from '../../repository/articleRepository'
 import { UserRepository } from '../../repository/userRepository'
-import NormalButton from '../../components/common/NormalButton'
 import { signOut } from '../../lib/firebase-auth'
+import UserProfile from '../../components/UserProfile'
 
 type Props = {
   user: User
@@ -292,31 +283,11 @@ export default function UserShow(props: Props) {
       {user ? (
         <Box>
           {/* プロフィール情報 */}
-          <VStack spacing={4} align='center'>
-            <section className='text-center'>
-              <Image
-                borderRadius='full'
-                src={user.profileImageURL}
-                width={100}
-                height={100}
-                alt='user icon'
-              />
-            </section>
-            <h1 className='h4'>{user.name}のページ</h1>
-            <Text>(記事数) {user.articlesCount}</Text>
-            <CategoriesRatioList categoriesRatio={categoriesRatio} />
-            {isCurrentUser && (
-              <VStack spacing={4} align='center'>
-                <NormalButton title='Add' isSending={isSending} onClick={onOpenAddArticleModal} />
-                <NormalButton title='Sign out' isSending={isSending} onClick={onClickSignOut} />
-                <NormalButton
-                  title='Delete account'
-                  isSending={isSending}
-                  onClick={onClickDeleteAccount}
-                />
-              </VStack>
-            )}
-          </VStack>
+          <UserProfile
+            name={user.name}
+            imageURL={user.profileImageURL}
+            articleCounts={user.articlesCount}
+          />
           {/* 記事一覧 */}
           <VStack divider={<StackDivider borderColor='gray.200' />} spacing={4} align='center'>
             <Box className='col-12' ref={scrollContainerRef}>
