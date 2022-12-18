@@ -67,18 +67,10 @@ export default function Item(props: Props) {
           >
             {props.article.title}
           </Heading>
-          <Text color={'gray.500'} noOfLines={2} fontSize={'xs'} lineHeight={'120%'}>
-            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum
-            has been the industry's standard
-          </Text>
         </VStack>
         <Divider />
         <Text color={'gray.700'} noOfLines={5} lineHeight={'130%'}>
-          {/* {props.article.comment} */}
-          Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has
-          been the industry's standard dummy text ever since the 1500s, when an unknown printer took
-          a galley of type and scrambled it to make a type specimen book. It has survived not only
-          five centuries, but also the leap into electronic typesetting
+          {props.article.comment}
         </Text>
         <Text color={'gray.500'} w='100%' fontSize={'xs'} align={'right'}>
           {dayjs(props.article.createdAt, 'YYYY-MM-DDThh:mm:ss').format('YYYY/MM/DD HH:mm')}
