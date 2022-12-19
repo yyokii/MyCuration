@@ -20,7 +20,7 @@ import { Article, articleConverter } from '../../types/article'
 import { firestore } from '../../lib/firebase'
 import { fetchUserWithName } from '../../lib/db'
 import Item from '../../components/Article/Item'
-import { Box, Center, SimpleGrid, useDisclosure, VStack } from '@chakra-ui/react'
+import { Box, Center, SimpleGrid, useDisclosure, Text, VStack } from '@chakra-ui/react'
 import { UpdateArticleModal } from '../../components/Modal/UpdateArticleModal'
 import { AddArticleModal } from '../../components/Modal/AddArticleModal'
 import { SimpleModal } from '../../components/Modal/SimpleModal'
@@ -294,6 +294,9 @@ export default function UserShow(props: Props) {
           <Center mt={-5}>
             <AddContentButton isLoading={isSending} onClick={onOpenAddArticleModal} />
           </Center>
+          <Text fontSize={'4xl'} fontWeight={'extrabold'} m={6}>
+            Comments
+          </Text>
           {/* 記事一覧 */}
           <VStack spacing={4} align='center' my={8}>
             <Box className='col-12' ref={scrollContainerRef}>

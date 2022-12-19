@@ -23,20 +23,13 @@ type Props = {
 export default function Item(props: Props) {
   const basePadding = 6
   return (
-    <Box
-      w={'250px'}
-      bg={useColorModeValue('white', 'gray.900')}
-      boxShadow={'md'}
-      rounded={'md'}
-      overflow={'hidden'}
-      pb={2}
-    >
+    <Box w={'250px'} bg={'white'} boxShadow={'md'} rounded={'md'} overflow={'hidden'} pb={2}>
       {props.isCurrentUser && (
         <Flex justifyContent='end' alignContent='center'>
           <IconButton
             size='md'
             variant='ghost'
-            colorScheme='teal'
+            colorScheme='gray.700'
             aria-label='Edit'
             onClick={() => props.onClickUpdae()}
             icon={<EditIcon />}
@@ -44,7 +37,7 @@ export default function Item(props: Props) {
           <IconButton
             size='md'
             variant='ghost'
-            colorScheme='teal'
+            colorScheme='gray.700'
             aria-label='Edit'
             onClick={() => props.onClickDelete(props.article)}
             icon={<DeleteIcon />}
@@ -54,16 +47,11 @@ export default function Item(props: Props) {
       <Stack spacing={2} mx={4}>
         <VStack align={'start'} spacing={0}>
           {props.article.categoryData != null && (
-            <Text color={'green.500'} fontWeight={800} fontSize={'sm'} letterSpacing={1.1}>
+            <Text color={'blue.300'} fontWeight={800} fontSize={'sm'} letterSpacing={1.1}>
               {props.article.categoryData.name}
             </Text>
           )}
-          <Heading
-            color={useColorModeValue('gray.700', 'white')}
-            fontSize={'2xl'}
-            fontFamily={'body'}
-            pt={0}
-          >
+          <Heading color={'gray.700'} fontSize={'2xl'} fontFamily={'body'} pt={0}>
             {props.article.title}
           </Heading>
         </VStack>
