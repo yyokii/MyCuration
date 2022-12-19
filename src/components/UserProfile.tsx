@@ -16,7 +16,7 @@ export default function UserProfile(props: Props) {
           <Heading fontSize={'2xl'} fontFamily={'body'}>
             {props.name}
           </Heading>
-          <Text fontWeight={600} color={'gray.500'}>
+          <Text color={'red.400'} fontWeight={'semibold'}>
             {props.articleCounts} articles
           </Text>
         </VStack>

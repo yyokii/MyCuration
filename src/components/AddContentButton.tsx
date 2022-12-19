@@ -6,6 +6,7 @@ export default function AddContentButton(props: ButtonProps) {
       {...props}
       px={4}
       fontSize={'sm'}
+      fontWeight={'extrabold'}
       rounded={'full'}
       color={'red.400'}
       boxShadow='lg'
