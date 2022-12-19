@@ -26,9 +26,8 @@ export default function Item(props: Props) {
     <Box
       w={'250px'}
       bg={useColorModeValue('white', 'gray.900')}
-      boxShadow={'2xl'}
+      boxShadow={'md'}
       rounded={'md'}
-      // p={basePadding}
       overflow={'hidden'}
       pb={2}
     >
@@ -69,6 +68,7 @@ export default function Item(props: Props) {
           </Heading>
         </VStack>
         <Divider />
+        {/* このサイズ調整 */}
         <Text color={'gray.700'} noOfLines={5} lineHeight={'130%'}>
           {props.article.comment}
         </Text>

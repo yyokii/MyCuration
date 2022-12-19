@@ -8,7 +8,7 @@ export default function AddContentButton(props: ButtonProps) {
       fontSize={'sm'}
       rounded={'full'}
       color={'red.400'}
-      boxShadow='2xl'
+      boxShadow='lg'
       p='6'
       bg='white'
       _hover={{

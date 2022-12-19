@@ -2,6 +2,7 @@ import { ToastContainer } from 'react-toastify'
 import Head from 'next/head'
 import Footer from './Fotter'
 import Header from './Header'
+import { Box } from '@chakra-ui/react'
 
 export default function Layout({ children }) {
   const title = 'Myサービス'
@@ -23,7 +24,9 @@ export default function Layout({ children }) {
         ></link>
       </Head>
       <Header menuContents={menuContents} />
-      <div className='container'>{children}</div>
+      <Box className='container' mt='20px'>
+        {children}
+      </Box>
       <ToastContainer />
       <Footer />
     </div>

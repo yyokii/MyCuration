@@ -284,7 +284,7 @@ export default function UserShow(props: Props) {
       {user ? (
         <Box>
           {/* プロフィール情報 */}
-          <Center bg={'orange.100'} py={4}>
+          <Center bgGradient='linear(to-r, #F9E1FD, #FAF0DD)' py={4}>
             <UserProfile
               name={user.name}
               imageURL={user.profileImageURL}

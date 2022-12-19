@@ -24,8 +24,8 @@ export default function Header(props: Props) {
 
   return (
     <>
-      <Box bg={useColorModeValue('red.200', 'gray.900')} px={4}>
-        <Flex h={8} alignItems={'center'} justifyContent={'space-between'}>
+      <Box px={4} boxShadow='md'>
+        <Flex h='40px' alignItems={'center'} justifyContent={'space-between'}>
           <HStack spacing={8} alignItems={'center'}>
             <Box>Logo</Box>
           </HStack>
