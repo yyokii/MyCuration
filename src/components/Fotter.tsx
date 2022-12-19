@@ -74,7 +74,7 @@ export default function Footer() {
         align={{ base: 'center', md: 'center' }}
       >
         <Logo />
-        <Text>© 2022 Chakra Templates. All rights reserved</Text>
+        <Text> Developer: Yoki</Text>
         <Stack direction={'row'} spacing={6}>
           <SocialButton label={'Twitter'} href={'#'}>
             <EmailIcon />
