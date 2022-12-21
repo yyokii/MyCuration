@@ -23,11 +23,11 @@ type Props = {
 export default function Item(props: Props) {
   const basePadding = 6
   return (
-    <Box w={'250px'} bg={'white'} boxShadow={'md'} rounded={'md'} overflow={'hidden'} pb={2}>
+    <Box w='250px' bg={'white'} boxShadow={'md'} rounded={'md'} overflow={'hidden'} pb={2}>
       {props.isCurrentUser && (
-        <Flex justifyContent='end' alignContent='center'>
+        <Flex mt={1} me={1} justifyContent='end' alignContent='center'>
           <IconButton
-            size='md'
+            size='sm'
             variant='ghost'
             colorScheme='gray.700'
             aria-label='Edit'
@@ -35,7 +35,7 @@ export default function Item(props: Props) {
             icon={<EditIcon />}
           />
           <IconButton
-            size='md'
+            size='sm'
             variant='ghost'
             colorScheme='gray.700'
             aria-label='Edit'
@@ -56,8 +56,7 @@ export default function Item(props: Props) {
           </Heading>
         </VStack>
         <Divider />
-        {/* このサイズ調整 */}
-        <Text color={'gray.700'} noOfLines={5} lineHeight={'130%'}>
+        <Text h='100px' color={'gray.700'} noOfLines={5} lineHeight={'130%'}>
           {props.article.comment}
         </Text>
         <Text color={'gray.500'} w='100%' fontSize={'xs'} align={'right'}>
