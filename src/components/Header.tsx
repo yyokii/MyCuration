@@ -1,14 +1,5 @@
-import {
-  Box,
-  Flex,
-  HStack,
-  IconButton,
-  useDisclosure,
-  useColorModeValue,
-  Spacer,
-  Stack,
-} from '@chakra-ui/react'
-import { HamburgerIcon, CloseIcon, AddIcon } from '@chakra-ui/icons'
+import { Box, Flex, HStack, IconButton, useDisclosure, Spacer, Stack } from '@chakra-ui/react'
+import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons'
 
 type Props = {
   menuContents: MenuContent[]
