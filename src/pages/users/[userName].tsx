@@ -20,27 +20,19 @@ import { Article, articleConverter } from '../../types/article'
 import { firestore } from '../../lib/firebase'
 import { fetchUserWithName } from '../../lib/db'
 import Item from '../../components/Article/Item'
-import {
-  Box,
-  Button,
-  Image,
-  SimpleGrid,
-  StackDivider,
-  Text,
-  useDisclosure,
-  VStack,
-} from '@chakra-ui/react'
+import { Box, Center, SimpleGrid, useDisclosure, Text, VStack } from '@chakra-ui/react'
 import { UpdateArticleModal } from '../../components/Modal/UpdateArticleModal'
 import { AddArticleModal } from '../../components/Modal/AddArticleModal'
 import { SimpleModal } from '../../components/Modal/SimpleModal'
-import CategoriesRatioList, { CategoriesRatio } from '../../components/CategoriesRatio'
+import { CategoriesRatio } from '../../components/CategoriesRatio'
 import NotFound from '../../components/NotFound'
 import { GetServerSideProps } from 'next'
 import { RepositoryFactory } from '../../repository/repository'
 import { ArticleRepository } from '../../repository/articleRepository'
 import { UserRepository } from '../../repository/userRepository'
-import NormalButton from '../../components/common/NormalButton'
-import { signOut } from '../../lib/firebase-auth'
+import UserProfile from '../../components/UserProfile'
+import AddContentButton from '../../components/AddContentButton'
+import AccountSettingPopover from '../../components/AccountSettingPopover'
 
 type Props = {
   user: User
@@ -270,7 +262,11 @@ export default function UserShow(props: Props) {
     }
   }
 
-  async function onClickSignOut() {
+  async function signOut() {
+    if (!isCurrentUser) {
+      return
+    }
+
     try {
       await signOut()
     } catch (error) {
@@ -278,7 +274,11 @@ export default function UserShow(props: Props) {
     }
   }
 
-  async function onClickDeleteAccount() {
+  async function deleteAccount() {
+    if (!isCurrentUser) {
+      return
+    }
+
     try {
       await userRepository.delete()
       router.push('/')
@@ -292,33 +292,41 @@ export default function UserShow(props: Props) {
       {user ? (
         <Box>
           {/* プロフィール情報 */}
-          <VStack spacing={4} align='center'>
-            <section className='text-center'>
-              <Image
-                borderRadius='full'
-                src={user.profileImageURL}
-                width={100}
-                height={100}
-                alt='user icon'
-              />
-            </section>
-            <h1 className='h4'>{user.name}のページ</h1>
-            <Text>(記事数) {user.articlesCount}</Text>
-            <CategoriesRatioList categoriesRatio={categoriesRatio} />
+          <VStack
+            align={'end'}
+            bgGradient='linear(to-r, #F9E1FD, #FAF0DD)'
+            py={2}
+            pt={isCurrentUser ? 0 : 10}
+            pb={10}
+          >
             {isCurrentUser && (
-              <VStack spacing={4} align='center'>
-                <NormalButton title='Add' isSending={isSending} onClick={onOpenAddArticleModal} />
-                <NormalButton title='Sign out' isSending={isSending} onClick={onClickSignOut} />
-                <NormalButton
-                  title='Delete account'
-                  isSending={isSending}
-                  onClick={onClickDeleteAccount}
-                />
-              </VStack>
+              <AccountSettingPopover
+                signIn={() => {
+                  signOut()
+                }}
+                deleteAccount={async function (): Promise<void> {
+                  await deleteAccount()
+                }}
+              />
             )}
+            <Center w='100%'>
+              <UserProfile
+                name={user.name}
+                imageURL={user.profileImageURL}
+                articleCounts={user.articlesCount}
+              />
+            </Center>
           </VStack>
+          {isCurrentUser && (
+            <Center mt={-5}>
+              <AddContentButton isLoading={isSending} onClick={onOpenAddArticleModal} />
+            </Center>
+          )}
+          <Text fontSize={'4xl'} fontWeight={'extrabold'} m={6}>
+            Comments
+          </Text>
           {/* 記事一覧 */}
-          <VStack divider={<StackDivider borderColor='gray.200' />} spacing={4} align='center'>
+          <VStack spacing={4} align='center' my={8}>
             <Box className='col-12' ref={scrollContainerRef}>
               <SimpleGrid columns={{ sm: 2, md: 3 }} spacing='40px'>
                 {articles.map((article) => (
