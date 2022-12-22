@@ -1,4 +1,4 @@
-import { Box, Center, Heading, HStack, Image, Text, VStack } from '@chakra-ui/react'
+import { Box, Heading, HStack, Image, Text, VStack } from '@chakra-ui/react'
 
 type Props = {
   name: string
@@ -8,7 +8,7 @@ type Props = {
 
 export default function UserProfile(props: Props) {
   return (
-    <Box maxW={'320px'} w={'full'} rounded={'lg'} p={6} textAlign={'center'}>
+    <Box textAlign={'center'}>
       <HStack spacing={5}>
         <Image borderRadius='full' src={props.imageURL} width={100} height={100} alt='user icon' />
 
