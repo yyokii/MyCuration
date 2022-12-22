@@ -9,8 +9,6 @@ export default function Layout({ children }) {
   const description = '〜なサービスです。'
   const ogpImageUrl = `${process.env.NEXT_PUBLIC_WEB_URL}/images/ogp_card.png`
 
-  const menuContents = []
-
   return (
     <div>
       <Head>
@@ -23,7 +21,7 @@ export default function Layout({ children }) {
           rel='stylesheet'
         ></link>
       </Head>
-      <Header menuContents={menuContents} />
+      <Header />
       <Box className='container' mt='20px'>
         {children}
       </Box>

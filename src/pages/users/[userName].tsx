@@ -30,9 +30,9 @@ import { GetServerSideProps } from 'next'
 import { RepositoryFactory } from '../../repository/repository'
 import { ArticleRepository } from '../../repository/articleRepository'
 import { UserRepository } from '../../repository/userRepository'
-import { signOut } from '../../lib/firebase-auth'
 import UserProfile from '../../components/UserProfile'
 import AddContentButton from '../../components/AddContentButton'
+import AccountSettingPopover from '../../components/AccountSettingPopover'
 
 type Props = {
   user: User
@@ -262,7 +262,11 @@ export default function UserShow(props: Props) {
     }
   }
 
-  async function onClickSignOut() {
+  async function signOut() {
+    if (!isCurrentUser) {
+      return
+    }
+
     try {
       await signOut()
     } catch (error) {
@@ -270,7 +274,11 @@ export default function UserShow(props: Props) {
     }
   }
 
-  async function onClickDeleteAccount() {
+  async function deleteAccount() {
+    if (!isCurrentUser) {
+      return
+    }
+
     try {
       await userRepository.delete()
       router.push('/')
@@ -284,16 +292,36 @@ export default function UserShow(props: Props) {
       {user ? (
         <Box>
           {/* プロフィール情報 */}
-          <Center bgGradient='linear(to-r, #F9E1FD, #FAF0DD)' py={4}>
-            <UserProfile
-              name={user.name}
-              imageURL={user.profileImageURL}
-              articleCounts={user.articlesCount}
-            />
-          </Center>
-          <Center mt={-5}>
-            <AddContentButton isLoading={isSending} onClick={onOpenAddArticleModal} />
-          </Center>
+          <VStack
+            align={'end'}
+            bgGradient='linear(to-r, #F9E1FD, #FAF0DD)'
+            py={2}
+            pt={isCurrentUser ? 0 : 10}
+            pb={10}
+          >
+            {isCurrentUser && (
+              <AccountSettingPopover
+                signIn={() => {
+                  signOut()
+                }}
+                deleteAccount={async function (): Promise<void> {
+                  await deleteAccount()
+                }}
+              />
+            )}
+            <Center w='100%'>
+              <UserProfile
+                name={user.name}
+                imageURL={user.profileImageURL}
+                articleCounts={user.articlesCount}
+              />
+            </Center>
+          </VStack>
+          {isCurrentUser && (
+            <Center mt={-5}>
+              <AddContentButton isLoading={isSending} onClick={onOpenAddArticleModal} />
+            </Center>
+          )}
           <Text fontSize={'4xl'} fontWeight={'extrabold'} m={6}>
             Comments
           </Text>
