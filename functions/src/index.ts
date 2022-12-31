@@ -14,7 +14,7 @@ export const onDeleteArticle = functions.firestore
 
 export const onCreateArticle = functions.firestore
   .document('users/{userId}/articles/{articleId}')
-  .onDelete((_, context) => {
+  .onCreate((_, context) => {
     const userId = context.params.userId
     const userRef = db.collection('users').doc(userId)
     return userRef.update({ articlesCount: admin.firestore.FieldValue.increment(1) })

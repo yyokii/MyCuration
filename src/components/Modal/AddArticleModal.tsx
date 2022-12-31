@@ -23,7 +23,7 @@ import { RepositoryFactory } from '../../repository/repository'
 type Props = {
   isOpen: boolean
   categories: Category[]
-  onSubmit: (url: string, comment: string, category: Category) => void
+  onSubmit: (url: string, title: string, comment: string, category: Category) => void
   onClose: () => void
 }
 
@@ -52,7 +52,7 @@ export function AddArticleModal(props: Props) {
   }
 
   async function onSubmit() {
-    props.onSubmit(contentURL, comment, selectedCategory)
+    props.onSubmit(contentURL, title, comment, selectedCategory)
     setContentURL('')
     setComment('')
     setSelectedCategory(null)

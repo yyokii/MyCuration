@@ -8,11 +8,13 @@ import { authenticate } from '../../utils/api/authenticate'
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === 'POST') {
+    // TODO: 入力データのバリデーション
     try {
       const body = JSON.parse(JSON.stringify(req.body))
       const article = await createArticle(
         req.query.uid as string,
         body.contentURL,
+        body.title,
         body.comment,
         body.category,
       )
