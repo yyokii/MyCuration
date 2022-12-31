@@ -4,6 +4,7 @@ import { Category } from '../../types/category'
 import { useEffect, useRef, useState } from 'react'
 import {
   collection,
+  deleteDoc,
   doc,
   getDocs,
   limit,
@@ -254,12 +255,7 @@ export default function UserShow(props: Props) {
     if (!isCurrentUser) {
       return
     }
-
-    try {
-      await articleRepository.delete(article.id)
-    } catch (error) {
-      console.log(error)
-    }
+    await deleteDoc(doc(firestore, `users/${currentUser.uid}/articles`, article.id))
   }
 
   async function signOut() {
