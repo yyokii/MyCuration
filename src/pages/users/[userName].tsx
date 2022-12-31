@@ -218,11 +218,11 @@ export default function UserShow(props: Props) {
 
   // Actions
 
-  async function onSubmitItem(url: string, comment: string, category: Category) {
+  async function onSubmitItem(url: string, title: string, comment: string, category: Category) {
     setIsSending(true)
 
     try {
-      await articleRepository.create(url, comment, category)
+      await articleRepository.create(url, title, comment, category)
 
       setIsSending(false)
       toast.success('追加しました。', {
@@ -366,8 +366,13 @@ export default function UserShow(props: Props) {
           <AddArticleModal
             isOpen={isOpenAddArticleModal}
             categories={props.categories}
-            onSubmit={async (url: string, comment: string, category: Category): Promise<void> => {
-              await onSubmitItem(url, comment, category)
+            onSubmit={async (
+              url: string,
+              title: string,
+              comment: string,
+              category: Category,
+            ): Promise<void> => {
+              await onSubmitItem(url, title, comment, category)
             }}
             onClose={onCloseAddArticleModal}
           />
