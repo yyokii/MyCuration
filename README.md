@@ -1,8 +1,10 @@
 ## Set up
 
-Firebase emulator
+Start firebase emulator
 
-`firebase emulators:start --import=./emulators`
+`yarn run emulator`
+
+This command compiles Funcitons and starts firebase emulator.
 
 ## Commands
 
