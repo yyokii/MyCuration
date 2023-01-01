@@ -10,7 +10,6 @@ export async function createArticle(
   comment: string,
   categoryID: string,
 ): Promise<Object> {
-  const articleRef = firestore.collection(`users`).doc(uid).collection('articles').doc()
   const currentDate = dayjs().toISOString()
   const article = {
     comment: comment,
