@@ -18,7 +18,7 @@ import Layout from '../../components/Layout'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { toast } from 'react-toastify'
 import { Article, articleConverter } from '../../types/article'
-import { firestore } from '../../lib/firebase'
+import { auth, firestore } from '../../lib/firebase'
 import { fetchUserWithName } from '../../lib/db'
 import Item from '../../components/Article/Item'
 import { Box, Center, SimpleGrid, useDisclosure, Text, VStack } from '@chakra-ui/react'
@@ -30,7 +30,6 @@ import NotFound from '../../components/NotFound'
 import { GetServerSideProps } from 'next'
 import { RepositoryFactory } from '../../repository/repository'
 import { ArticleRepository } from '../../repository/articleRepository'
-import { UserRepository } from '../../repository/userRepository'
 import UserProfile from '../../components/UserProfile'
 import AddContentButton from '../../components/AddContentButton'
 import AccountSettingPopover from '../../components/AccountSettingPopover'
@@ -142,7 +141,6 @@ export default function UserShow(props: Props) {
 
   // Repository
   const articleRepository: ArticleRepository = RepositoryFactory.get('article')
-  const userRepository: UserRepository = RepositoryFactory.get('user')
 
   // モーダルの表示管理
   const {
@@ -276,7 +274,7 @@ export default function UserShow(props: Props) {
     }
 
     try {
-      await userRepository.delete()
+      await auth.currentUser.delete()
       router.push('/')
     } catch (error) {
       console.log(error)
