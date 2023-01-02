@@ -1,6 +1,5 @@
 import axios, { AxiosInstance } from 'axios'
 import { ArticleRepositoryImpl } from './articleRepository'
-import { UserRepositoryImpl } from './userRepository'
 import { auth } from '../lib/firebase'
 import { OGPRepositoryImpl } from './ogpRepository'
 
@@ -37,7 +36,6 @@ interface repositoryObject {
 const repositories: repositoryObject = {
   article: new ArticleRepositoryImpl(baseAxiosWithAuthInterceptor, '/api/article'),
   ogp: new OGPRepositoryImpl(baseAxios, '/api/ogpdata'),
-  user: new UserRepositoryImpl(baseAxiosWithAuthInterceptor, '/api/user'),
 }
 
 export const RepositoryFactory = {
