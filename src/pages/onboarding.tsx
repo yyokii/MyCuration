@@ -15,7 +15,6 @@ import NormalButton from '../components/common/NormalButton'
 import Layout from '../components/Layout'
 import { useCurrentUser } from '../hooks/useCurrentUser'
 import { firestore } from '../lib/firebase'
-import { auth } from '../lib/firebase'
 import { userState } from '../states/user'
 import { User } from '../types/user'
 
@@ -88,29 +87,33 @@ export default function Onboarding() {
 
   return (
     <Layout>
-      <Box>
-        <VStack mx={4} my={16} spacing={8}>
-          <Text fontSize='3xl'>User name</Text>
-          <FormControl maxWidth={'400px'} isInvalid={isInputError}>
-            <FormLabel htmlFor='url'>Plese input your user name.</FormLabel>
-            <Input
-              ref={initialRef}
-              id='user name'
-              placeholder='user name'
-              value={userName}
-              onChange={(e) => onChangeUserName(e.target.value)}
-              required
-            />
-            {isUserNameNotValid && (
-              <FormErrorMessage>User name is less than 100 characters.</FormErrorMessage>
-            )}
-            {isAlreadyRegistered && (
-              <FormErrorMessage>This name is already registered.</FormErrorMessage>
-            )}
-          </FormControl>
-          <NormalButton title='OK' isSending={isSending} onClick={onSubmitItem} />
-        </VStack>
-      </Box>
+      {currentUser == null ? (
+        <div>loading</div>
+      ) : (
+        <Box>
+          <VStack mx={4} my={16} spacing={8}>
+            <Text fontSize='3xl'>User name</Text>
+            <FormControl maxWidth={'400px'} isInvalid={isInputError}>
+              <FormLabel htmlFor='url'>Plese input your user name.</FormLabel>
+              <Input
+                ref={initialRef}
+                id='user name'
+                placeholder='user name'
+                value={userName}
+                onChange={(e) => onChangeUserName(e.target.value)}
+                required
+              />
+              {isUserNameNotValid && (
+                <FormErrorMessage>User name is less than 100 characters.</FormErrorMessage>
+              )}
+              {isAlreadyRegistered && (
+                <FormErrorMessage>This name is already registered.</FormErrorMessage>
+              )}
+            </FormControl>
+            <NormalButton title='OK' isSending={isSending} onClick={onSubmitItem} />
+          </VStack>
+        </Box>
+      )}
     </Layout>
   )
 }
