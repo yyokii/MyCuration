@@ -26,22 +26,6 @@ export default function Hero() {
           This is a service that allows you to save articles you read with comments and create your
           own curation page.
         </Text>
-        <Stack spacing={6} direction={'row'}>
-          <Box h='40px'>
-            <Button
-              rounded={'full'}
-              px={6}
-              colorScheme={'orange'}
-              bg={'orange.400'}
-              _hover={{ bg: 'orange.500' }}
-              onClick={() => {
-                router.push('/signup')
-              }}
-            >
-              Get started
-            </Button>
-          </Box>
-        </Stack>
       </Stack>
     </Container>
   )
