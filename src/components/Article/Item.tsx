@@ -12,6 +12,7 @@ import {
 import dayjs from 'dayjs'
 import { Article } from '../../types/article'
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons'
+import LinkCard from './LinkCard'
 
 type Props = {
   article: Article
@@ -51,17 +52,20 @@ export default function Item(props: Props) {
               {props.article.categoryData.name}
             </Text>
           )}
-          <Heading color={'gray.700'} fontSize={'2xl'} fontFamily={'body'} pt={0}>
-            {props.article.title}
-          </Heading>
+          <Text h='100px' color={'gray.700'} noOfLines={5} lineHeight={'130%'}>
+            {props.article.comment}
+          </Text>
+          <Text color={'gray.500'} w='100%' fontSize={'xs'} align={'right'}>
+            {dayjs(props.article.createdAt, 'YYYY-MM-DDThh:mm:ss').format('YYYY/MM/DD HH:mm')}
+          </Text>
         </VStack>
         <Divider />
-        <Text h='100px' color={'gray.700'} noOfLines={5} lineHeight={'130%'}>
-          {props.article.comment}
-        </Text>
-        <Text color={'gray.500'} w='100%' fontSize={'xs'} align={'right'}>
-          {dayjs(props.article.createdAt, 'YYYY-MM-DDThh:mm:ss').format('YYYY/MM/DD HH:mm')}
-        </Text>
+        <LinkCard
+          title={props.article.ogTitle}
+          description={props.article.ogDescription}
+          siteName={props.article.ogSiteName}
+          url={props.article.contentURL}
+        />
       </Stack>
     </Box>
   )

@@ -6,7 +6,7 @@ import { sendBadRequestErrorResponse } from '../../utils/api/sendErrorResponse'
 /**
  *
  * 次のようなリクエストがあった際にレスポンスとしてメタ情報を返却する
- * https://aaa.bbb.ccc/api/loadOGPData?url=https://zenn.dev
+ * http://localhost:3000/api/ogpdata?url=https://zenn.dev
  *
  * https://vercel.com/docs/concepts/functions/serverless-functions
  */
