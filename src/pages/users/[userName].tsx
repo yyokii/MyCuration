@@ -33,6 +33,7 @@ import { ArticleRepository } from '../../repository/articleRepository'
 import UserProfile from '../../components/UserProfile'
 import AddContentButton from '../../components/AddContentButton'
 import AccountSettingPopover from '../../components/AccountSettingPopover'
+import { OGP } from '../../types/ogp'
 
 type Props = {
   user: User
@@ -216,11 +217,11 @@ export default function UserShow(props: Props) {
 
   // Actions
 
-  async function onSubmitItem(url: string, title: string, comment: string, category: Category) {
+  async function onSubmitItem(ogp: OGP, comment: string, category: Category) {
     setIsSending(true)
 
     try {
-      await articleRepository.create(url, title, comment, category)
+      await articleRepository.create(ogp, comment, category)
 
       setIsSending(false)
       toast.success('追加しました。', {
@@ -364,13 +365,8 @@ export default function UserShow(props: Props) {
           <AddArticleModal
             isOpen={isOpenAddArticleModal}
             categories={props.categories}
-            onSubmit={async (
-              url: string,
-              title: string,
-              comment: string,
-              category: Category,
-            ): Promise<void> => {
-              await onSubmitItem(url, title, comment, category)
+            onSubmit={async (ogp: OGP, comment: string, category: Category): Promise<void> => {
+              await onSubmitItem(ogp, comment, category)
             }}
             onClose={onCloseAddArticleModal}
           />
