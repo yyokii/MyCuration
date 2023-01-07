@@ -14,9 +14,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const article = await createArticle(
         req.query.uid as string,
         body.contentURL,
-        body.title,
         body.comment,
         body.category,
+        body.ogTitle,
+        body.ogDescription,
+        body.ogSiteName,
       )
       return res.status(200).json(article)
     } catch (error) {

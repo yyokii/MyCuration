@@ -16,6 +16,7 @@ import {
 import { useRef, useState } from 'react'
 import { CategorySelect } from '../Category/CategorySelect'
 import { Category } from '../../types/category'
+import { OGP } from '../../types/ogp'
 import { isValidUrl } from '../../utils/url'
 import { OGPRepository } from '../../repository/ogpRepository'
 import { RepositoryFactory } from '../../repository/repository'
@@ -23,37 +24,35 @@ import { RepositoryFactory } from '../../repository/repository'
 type Props = {
   isOpen: boolean
   categories: Category[]
-  onSubmit: (url: string, title: string, comment: string, category: Category) => void
+  onSubmit: (ogp: OGP, comment: string, category: Category) => void
   onClose: () => void
 }
 
 export function AddArticleModal(props: Props) {
   // State
   const initialRef = useRef()
-  const [contentURL, setContentURL] = useState('')
-  const [title, setTitle] = useState('')
+  const [ogp, setOGP] = useState<OGP>(OGP.empty())
   const [comment, setComment] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<Category>(null)
 
   const ogpRepository: OGPRepository = RepositoryFactory.get('ogp')
 
   // Flag
-  const isContentURLError = contentURL === '' || contentURL.length > 2000
+  const isContentURLError = ogp.url === '' || ogp.url.length > 2000
   const canSubmit = !isContentURLError && selectedCategory !== null
 
   async function onChangeInputURL(input: string) {
-    setContentURL(input)
     if (isValidUrl(input)) {
       const ogp = await ogpRepository.get(input)
       if (ogp) {
-        setTitle(ogp.title)
+        setOGP(ogp)
       }
     }
   }
 
   async function onSubmit() {
-    props.onSubmit(contentURL, title, comment, selectedCategory)
-    setContentURL('')
+    props.onSubmit(ogp, comment, selectedCategory)
+    setOGP(OGP.empty())
     setComment('')
     setSelectedCategory(null)
     props.onClose()
@@ -80,7 +79,6 @@ export function AddArticleModal(props: Props) {
                     ref={initialRef}
                     id='url'
                     placeholder='URL'
-                    value={contentURL}
                     onChange={(e) => onChangeInputURL(e.target.value)}
                     required
                   />
@@ -90,12 +88,7 @@ export function AddArticleModal(props: Props) {
                 </FormControl>
 
                 <FormLabel htmlFor='url'>Title</FormLabel>
-                <Input
-                  id='title'
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  required
-                />
+                <Input id='title' value={ogp.title} required />
 
                 <FormLabel mt={4}>Category</FormLabel>
                 <CategorySelect

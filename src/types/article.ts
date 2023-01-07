@@ -8,7 +8,9 @@ class Article {
   createdAt: string
   category: string
   categoryData: Category // This is used for display purpose.
-  title: string
+  ogTitle: string
+  ogDescription: string
+  ogSiteName: string
   updatedAt: string
 
   constructor(
@@ -18,7 +20,9 @@ class Article {
     createdAt: string,
     category: string,
     categoryData: Category,
-    title: string,
+    ogTitle: string,
+    ogDescription: string,
+    ogSiteName: string,
     updatedAt: string,
   ) {
     this.id = id
@@ -27,7 +31,9 @@ class Article {
     this.createdAt = createdAt
     this.category = category
     this.categoryData = categoryData
-    this.title = title
+    this.ogTitle = ogTitle
+    this.ogDescription = ogDescription
+    this.ogSiteName = ogSiteName
     this.updatedAt = updatedAt
   }
 
@@ -44,6 +50,9 @@ const articleConverter = {
       contentURL: article.contentURL,
       createdAt: article.createdAt,
       category: article.category,
+      ogTitle: article.ogTitle,
+      ogDescription: article.ogDescription,
+      ogSiteName: article.ogSiteName,
       updatedAt: article.updatedAt,
     }
   },
@@ -56,7 +65,9 @@ const articleConverter = {
       data.createdAt,
       data.category,
       null,
-      data.title,
+      data.ogTitle,
+      data.ogDescription,
+      data.ogSiteName,
       data.updatedAt,
     )
     return article
