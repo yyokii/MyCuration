@@ -1,14 +1,4 @@
-import {
-  Box,
-  Heading,
-  Text,
-  Stack,
-  useColorModeValue,
-  Flex,
-  VStack,
-  IconButton,
-  Divider,
-} from '@chakra-ui/react'
+import { Box, Text, Stack, Flex, VStack, IconButton, Divider, HStack } from '@chakra-ui/react'
 import dayjs from 'dayjs'
 import { Article } from '../../types/article'
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons'
@@ -47,11 +37,19 @@ export default function Item(props: Props) {
       )}
       <Stack spacing={2} mx={4}>
         <VStack align={'start'} spacing={0}>
-          {props.article.categoryData != null && (
-            <Text color={'blue.300'} fontWeight={800} fontSize={'sm'} letterSpacing={1.1}>
-              {props.article.categoryData.name}
-            </Text>
-          )}
+          <HStack>
+            {props.article.tags.map((tag) => (
+              <Text
+                key={tag.id}
+                color={'blue.300'}
+                fontWeight={800}
+                fontSize={'sm'}
+                letterSpacing={1.1}
+              >
+                {tag.name}
+              </Text>
+            ))}
+          </HStack>
           <Text h='100px' color={'gray.700'} noOfLines={5} lineHeight={'130%'}>
             {props.article.comment}
           </Text>

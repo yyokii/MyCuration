@@ -1,13 +1,13 @@
 import { WithFieldValue, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore'
-import { Category } from './category'
+import { Tag } from './tag'
 
 class Article {
   id: string
   comment: string
   contentURL: string
   createdAt: string
-  category: string
-  categoryData: Category // This is used for display purpose.
+  tagIDs: string[]
+  tags: Tag[]
   ogTitle: string
   ogDescription: string
   ogSiteName: string
@@ -18,8 +18,7 @@ class Article {
     comment: string,
     contentURL: string,
     createdAt: string,
-    category: string,
-    categoryData: Category,
+    tagIDs: string[],
     ogTitle: string,
     ogDescription: string,
     ogSiteName: string,
@@ -29,17 +28,21 @@ class Article {
     this.comment = comment
     this.contentURL = contentURL
     this.createdAt = createdAt
-    this.category = category
-    this.categoryData = categoryData
+    this.tagIDs = tagIDs
     this.ogTitle = ogTitle
     this.ogDescription = ogDescription
     this.ogSiteName = ogSiteName
     this.updatedAt = updatedAt
   }
 
-  configureCategoryData(categories: Category[]) {
-    const categoryData: Category = categories.find((category) => category.id === this.category)
-    this.categoryData = categoryData
+  static makeFromSnapshot(snapshot: QueryDocumentSnapshot): Article {
+    const data = snapshot.data() as Article
+    data.id = snapshot.id
+    return data
+  }
+
+  configureTagData(tags: Tag[]) {
+    return (this.tags = tags.filter((tag) => this.tagIDs.includes(tag.id)))
   }
 }
 
@@ -49,7 +52,7 @@ const articleConverter = {
       comment: article.comment,
       contentURL: article.contentURL,
       createdAt: article.createdAt,
-      category: article.category,
+      tagIDs: article.tagIDs,
       ogTitle: article.ogTitle,
       ogDescription: article.ogDescription,
       ogSiteName: article.ogSiteName,
@@ -63,8 +66,7 @@ const articleConverter = {
       data.comment,
       data.contentURL,
       data.createdAt,
-      data.category,
-      null,
+      data.tagIDs,
       data.ogTitle,
       data.ogDescription,
       data.ogSiteName,

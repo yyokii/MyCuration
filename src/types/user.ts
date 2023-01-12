@@ -26,11 +26,6 @@ class User {
     this.articlesCount = articlesCount
     this.categoriesCount = categoriesCount
   }
-
-  convertObjectToCategoriesCountMap(object: any) {
-    const categoriesCountMap: Map<string, number> = new Map(Object.entries(object))
-    this.categoriesCount = categoriesCountMap
-  }
 }
 
 const userConverter = {
@@ -53,7 +48,6 @@ const userConverter = {
       data.articlesCount,
       data.categoriesCount,
     )
-    user.convertObjectToCategoriesCountMap(data.categoriesCount)
     return user
   },
 }
@@ -79,7 +73,6 @@ const userConverterForAdmin = {
       data.articlesCount,
       data.categoriesCount,
     )
-    user.convertObjectToCategoriesCountMap(data.categoriesCount)
     return user
   },
 }

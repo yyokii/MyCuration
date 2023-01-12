@@ -1,17 +1,17 @@
 import { useRouter } from 'next/router'
 import { User, userConverter } from '../../types/user'
-import { Category } from '../../types/category'
 import { useEffect, useRef, useState } from 'react'
 import {
+  addDoc,
   collection,
   deleteDoc,
   doc,
+  DocumentReference,
   getDocs,
   limit,
   onSnapshot,
   orderBy,
   query,
-  QueryDocumentSnapshot,
   updateDoc,
 } from 'firebase/firestore'
 import Layout from '../../components/Layout'
@@ -25,7 +25,6 @@ import { Box, Center, SimpleGrid, useDisclosure, Text, VStack } from '@chakra-ui
 import { UpdateArticleModal } from '../../components/Modal/UpdateArticleModal'
 import { AddArticleModal } from '../../components/Modal/AddArticleModal'
 import { SimpleModal } from '../../components/Modal/SimpleModal'
-import { CategoriesRatio } from '../../components/CategoriesRatio'
 import NotFound from '../../components/NotFound'
 import { GetServerSideProps } from 'next'
 import { RepositoryFactory } from '../../repository/repository'
@@ -34,17 +33,17 @@ import UserProfile from '../../components/UserProfile'
 import AddContentButton from '../../components/AddContentButton'
 import AccountSettingPopover from '../../components/AccountSettingPopover'
 import { OGP } from '../../types/ogp'
+import { Tag } from '../../types/tag'
+import dayjs from 'dayjs'
 
 type Props = {
   user: User
-  categories: Category[]
-  categoriesRatio: CategoriesRatio[]
+  tags: Tag[]
 }
 
 const emptyProps: Props = {
   user: null,
-  categories: [],
-  categoriesRatio: [],
+  tags: [],
 }
 
 const defaultArticleLimit = 100
@@ -61,9 +60,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 
   try {
-    const categories = await loadCategories()
-
-    // Fetch user data
     const user = await fetchUserWithName(userName)
     if (!user) {
       return {
@@ -73,14 +69,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       }
     }
 
-    // Calculate categories ratio
-    const categoriesRatio = calcCategoriesRatio(user?.categoriesCount, user?.articlesCount)
+    const tags = await loadTags(user)
 
     return {
       props: {
         user: JSON.parse(JSON.stringify(user)),
-        categories: categories,
-        categoriesRatio: categoriesRatio,
+        tags: JSON.parse(JSON.stringify(tags)),
       },
     }
   } catch (error) {
@@ -93,39 +87,16 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 }
 
-async function loadCategories(): Promise<Category[]> {
-  const snapshot = await getDocs(query(collection(firestore, `categories`), orderBy('name')))
+async function loadTags(user: User): Promise<Tag[]> {
+  const snapshot = await getDocs(
+    query(collection(firestore, `users/${user.uid}/tags`), orderBy('name')),
+  )
 
-  const fetchedCategories = snapshot.docs.map((doc) => {
-    const category = doc.data() as Category
-    category.id = doc.id
-    return category
+  return snapshot.docs.map((doc) => {
+    const tag = doc.data() as Tag
+    tag.id = doc.id
+    return tag
   })
-  return fetchedCategories
-}
-
-function calcCategoriesRatio(
-  categoriesCount: Map<string, number>,
-  articlesCount: number,
-): CategoriesRatio[] {
-  if (categoriesCount === undefined || categoriesCount === null) {
-    return []
-  }
-
-  let categories: CategoriesRatio[] = []
-
-  for (const [key, value] of categoriesCount) {
-    if (value === 0) {
-      continue
-    }
-    const ratio = Math.round((value / articlesCount) * 100)
-    categories.push({
-      name: key,
-      ratio: ratio,
-    })
-  }
-
-  return categories
 }
 
 type Query = {
@@ -164,8 +135,7 @@ export default function UserShow(props: Props) {
 
   const [user, setUser] = useState<User>(props.user) // 本画面で表示する対象ユーザー
   const [articles, setArticles] = useState<Article[]>([])
-  const [categories] = useState<Category[]>(props.categories)
-  const [categoriesRatio, setCategoriesRatio] = useState<CategoriesRatio[]>(props.categoriesRatio)
+  const [tags, setTags] = useState<Tag[]>(props.tags)
 
   const [isSending, setIsSending] = useState(false)
   const [isPaginationFinished, setIsPaginationFinished] = useState(false)
@@ -174,17 +144,37 @@ export default function UserShow(props: Props) {
 
   // Effect
 
+  // TODO: listenするものについて、自分のページでなければ無視して良い気がしてきたが。効率は悪いが一旦listenのままで進めている。
+
   useEffect(() => {
+    // タグ情報の更新を監視
+    const tagQuery = query(collection(firestore, `users/${user?.uid}/tags`), orderBy('name', 'asc'))
+
+    const unsubscribe = onSnapshot(tagQuery, (querySnapshot) => {
+      const fetchedTags = querySnapshot.docs.map((doc) => {
+        const tag = doc.data() as Tag
+        tag.id = doc.id
+        return tag
+      })
+      setTags(fetchedTags)
+    })
+    return unsubscribe
+  }, [user?.uid])
+
+  useEffect(() => {
+    // コンテンツ情報の更新を監視
     const query = createArticlesBaseQuery(user?.uid, aritcleLimit)
     const unsubscribe = onSnapshot(query, (querySnapshot) => {
       const fetchedArticles = querySnapshot.docs.map((doc) => {
-        return configureArticle(doc, categories)
+        const data = Article.makeFromSnapshot(doc)
+        data.configureTagData(tags)
+        return data
       })
 
       setArticles(fetchedArticles)
     })
     return unsubscribe
-  }, [aritcleLimit])
+  }, [aritcleLimit, tags])
 
   useEffect(() => {
     if (user == null) {
@@ -193,8 +183,6 @@ export default function UserShow(props: Props) {
     const reference = doc(collection(firestore, 'users'), user.uid).withConverter(userConverter)
     const unsubscribe = onSnapshot(reference, (querySnapshot) => {
       const user = querySnapshot.data() as User
-      const categoriesRatio = calcCategoriesRatio(user?.categoriesCount, user?.articlesCount)
-      setCategoriesRatio(categoriesRatio)
       setUser(user)
     })
     return unsubscribe
@@ -208,20 +196,33 @@ export default function UserShow(props: Props) {
     ).withConverter(articleConverter)
   }
 
-  function configureArticle(snapshot: QueryDocumentSnapshot, categories: Category[]): Article {
-    const article = snapshot.data() as Article
-    article.id = snapshot.id
-    article.configureCategoryData(categories)
-    return article
-  }
-
   // Actions
 
-  async function onSubmitItem(ogp: OGP, comment: string, category: Category) {
+  async function onSubmitItem(ogp: OGP, comment: string, tags: Tag[]) {
+    if (!isCurrentUser) {
+      return
+    }
     setIsSending(true)
 
     try {
-      await articleRepository.create(ogp, comment, category)
+      const newTags = tags.filter((tag) => tag.id === '')
+      if (newTags.length > 0) {
+        for (const tag of newTags) {
+          const ref: DocumentReference = await addDoc(
+            collection(firestore, `users/${currentUser?.uid}/tags`),
+            {
+              name: tag.name,
+              createdAt: dayjs().toISOString(),
+              updatedAt: dayjs().toISOString(),
+            },
+          )
+          tag.id = ref.id
+        }
+      }
+
+      const loadedTags = await loadTags(user)
+      setTags(loadedTags)
+      await articleRepository.create(ogp, comment, tags)
 
       setIsSending(false)
       toast.success('追加しました。', {
@@ -364,11 +365,11 @@ export default function UserShow(props: Props) {
           />
           <AddArticleModal
             isOpen={isOpenAddArticleModal}
-            categories={props.categories}
-            onSubmit={async (ogp: OGP, comment: string, category: Category): Promise<void> => {
-              await onSubmitItem(ogp, comment, category)
+            onSubmit={async (ogp: OGP, comment: string, tags: Tag[]): Promise<void> => {
+              await onSubmitItem(ogp, comment, tags)
             }}
             onClose={onCloseAddArticleModal}
+            tags={tags}
           />
         </Box>
       ) : (

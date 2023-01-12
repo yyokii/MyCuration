@@ -14,17 +14,17 @@ import {
   VStack,
 } from '@chakra-ui/react'
 import { useRef, useState } from 'react'
-import { CategorySelect } from '../Category/CategorySelect'
-import { Category } from '../../types/category'
 import { OGP } from '../../types/ogp'
 import { isValidUrl } from '../../utils/url'
 import { OGPRepository } from '../../repository/ogpRepository'
 import { RepositoryFactory } from '../../repository/repository'
+import { SelectTag } from '../SelectTag'
+import { Tag } from '../../types/tag'
 
 type Props = {
   isOpen: boolean
-  categories: Category[]
-  onSubmit: (ogp: OGP, comment: string, category: Category) => void
+  tags: Tag[]
+  onSubmit: (ogp: OGP, comment: string, tags: Tag[]) => void
   onClose: () => void
 }
 
@@ -33,13 +33,13 @@ export function AddArticleModal(props: Props) {
   const initialRef = useRef()
   const [ogp, setOGP] = useState<OGP>(OGP.empty())
   const [comment, setComment] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<Category>(null)
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([])
 
   const ogpRepository: OGPRepository = RepositoryFactory.get('ogp')
 
-  // Flag
+  // Validation
   const isContentURLError = ogp.url === '' || ogp.url.length > 2000
-  const canSubmit = !isContentURLError && selectedCategory !== null
+  const canSubmit = !isContentURLError && selectedTags.length !== 0
 
   async function onChangeInputURL(input: string) {
     if (isValidUrl(input)) {
@@ -51,16 +51,11 @@ export function AddArticleModal(props: Props) {
   }
 
   async function onSubmit() {
-    props.onSubmit(ogp, comment, selectedCategory)
+    props.onSubmit(ogp, comment, selectedTags)
     setOGP(OGP.empty())
     setComment('')
-    setSelectedCategory(null)
+    setSelectedTags([])
     props.onClose()
-  }
-
-  function handleSelectedcategoryChange(categoryId: string) {
-    const selectedCategory = props.categories.find((c) => c.id === categoryId)
-    setSelectedCategory(selectedCategory)
   }
 
   return (
@@ -88,14 +83,15 @@ export function AddArticleModal(props: Props) {
                 </FormControl>
 
                 <FormLabel htmlFor='url'>Title</FormLabel>
-                <Input id='title' value={ogp.title} required />
 
                 <FormLabel mt={4}>Category</FormLabel>
-                <CategorySelect
-                  categories={props.categories}
-                  onChange={handleSelectedcategoryChange}
-                />
 
+                <SelectTag
+                  tags={props.tags}
+                  handleSelectedTagChange={(tags) => {
+                    setSelectedTags(tags)
+                  }}
+                />
                 <FormLabel htmlFor='comment' mt={4}>
                   Comment
                 </FormLabel>
