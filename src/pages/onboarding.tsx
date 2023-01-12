@@ -110,7 +110,7 @@ export default function Onboarding() {
                 <FormErrorMessage>This name is already registered.</FormErrorMessage>
               )}
             </FormControl>
-            <NormalButton title='OK' isSending={isSending} onClick={onSubmitItem} />
+            <NormalButton title='OK' isLoading={isSending} onClick={onSubmitItem} />
           </VStack>
         </Box>
       )}
