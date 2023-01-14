@@ -23,15 +23,15 @@ export default function AccountSettingPopover(props: Props) {
     <Popover>
       <PopoverTrigger>
         <IconButton
-          me={1}
-          size='sm'
+          _focus={{ boxShadow: 'none' }}
+          size='md'
           variant='ghost'
           colorScheme='gray.700'
           aria-label='Settings'
           icon={<SettingsIcon />}
         />
       </PopoverTrigger>
-      <PopoverContent>
+      <PopoverContent _focus={{ boxShadow: 'none' }}>
         <PopoverArrow />
         <PopoverCloseButton />
         <PopoverHeader>Account setting</PopoverHeader>

@@ -27,6 +27,11 @@ export class OGPRepositoryImpl implements OGPRepository {
     if (!data) return null
 
     const ogp = data.data[url]
-    return new OGP(url, ogp['og:title'], ogp['og:description'], ogp['og:site_name'])
+    return new OGP(
+      url,
+      ogp['og:title'] ?? '',
+      ogp['og:description'] ?? '',
+      ogp['og:site_name'] ?? '',
+    )
   }
 }

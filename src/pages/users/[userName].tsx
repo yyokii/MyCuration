@@ -1,17 +1,19 @@
 import { useRouter } from 'next/router'
 import { User, userConverter } from '../../types/user'
-import { Category } from '../../types/category'
 import { useEffect, useRef, useState } from 'react'
 import {
+  addDoc,
   collection,
   deleteDoc,
   doc,
+  DocumentData,
+  DocumentReference,
   getDocs,
   limit,
   onSnapshot,
   orderBy,
   query,
-  QueryDocumentSnapshot,
+  QuerySnapshot,
   updateDoc,
 } from 'firebase/firestore'
 import Layout from '../../components/Layout'
@@ -25,7 +27,6 @@ import { Box, Center, SimpleGrid, useDisclosure, Text, VStack } from '@chakra-ui
 import { UpdateArticleModal } from '../../components/Modal/UpdateArticleModal'
 import { AddArticleModal } from '../../components/Modal/AddArticleModal'
 import { SimpleModal } from '../../components/Modal/SimpleModal'
-import { CategoriesRatio } from '../../components/CategoriesRatio'
 import NotFound from '../../components/NotFound'
 import { GetServerSideProps } from 'next'
 import { RepositoryFactory } from '../../repository/repository'
@@ -34,17 +35,18 @@ import UserProfile from '../../components/UserProfile'
 import AddContentButton from '../../components/AddContentButton'
 import AccountSettingPopover from '../../components/AccountSettingPopover'
 import { OGP } from '../../types/ogp'
+import { Tag as TagData } from '../../types/tag'
+import dayjs from 'dayjs'
+import { TagBar } from '../../components/TagBar'
 
 type Props = {
   user: User
-  categories: Category[]
-  categoriesRatio: CategoriesRatio[]
+  tags: TagData[]
 }
 
 const emptyProps: Props = {
   user: null,
-  categories: [],
-  categoriesRatio: [],
+  tags: [],
 }
 
 const defaultArticleLimit = 100
@@ -61,9 +63,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 
   try {
-    const categories = await loadCategories()
-
-    // Fetch user data
     const user = await fetchUserWithName(userName)
     if (!user) {
       return {
@@ -73,14 +72,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       }
     }
 
-    // Calculate categories ratio
-    const categoriesRatio = calcCategoriesRatio(user?.categoriesCount, user?.articlesCount)
+    const tags = await loadTags(user)
 
     return {
       props: {
         user: JSON.parse(JSON.stringify(user)),
-        categories: categories,
-        categoriesRatio: categoriesRatio,
+        tags: JSON.parse(JSON.stringify(tags)),
       },
     }
   } catch (error) {
@@ -93,39 +90,23 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 }
 
-async function loadCategories(): Promise<Category[]> {
-  const snapshot = await getDocs(query(collection(firestore, `categories`), orderBy('name')))
+async function loadTags(user: User): Promise<TagData[]> {
+  const snapshot = await getDocs(
+    query(collection(firestore, `users/${user.uid}/tags`), orderBy('name')),
+  )
 
-  const fetchedCategories = snapshot.docs.map((doc) => {
-    const category = doc.data() as Category
-    category.id = doc.id
-    return category
-  })
-  return fetchedCategories
+  return makeDisplayTags(snapshot)
 }
 
-function calcCategoriesRatio(
-  categoriesCount: Map<string, number>,
-  articlesCount: number,
-): CategoriesRatio[] {
-  if (categoriesCount === undefined || categoriesCount === null) {
-    return []
-  }
-
-  let categories: CategoriesRatio[] = []
-
-  for (const [key, value] of categoriesCount) {
-    if (value === 0) {
-      continue
-    }
-    const ratio = Math.round((value / articlesCount) * 100)
-    categories.push({
-      name: key,
-      ratio: ratio,
-    })
-  }
-
-  return categories
+const makeDisplayTags = (snapshot: QuerySnapshot<DocumentData>) => {
+  const tags = snapshot.docs.map((doc) => {
+    const tag = doc.data() as TagData
+    tag.id = doc.id
+    return tag
+  })
+  const allTag = new TagData('all', 'All', '', '', true)
+  tags.unshift(allTag)
+  return tags
 }
 
 type Query = {
@@ -163,9 +144,9 @@ export default function UserShow(props: Props) {
   // State
 
   const [user, setUser] = useState<User>(props.user) // 本画面で表示する対象ユーザー
-  const [articles, setArticles] = useState<Article[]>([])
-  const [categories] = useState<Category[]>(props.categories)
-  const [categoriesRatio, setCategoriesRatio] = useState<CategoriesRatio[]>(props.categoriesRatio)
+  const [contents, setContents] = useState<Article[]>([])
+  const [filteredContents, setFilteredContents] = useState<Article[]>([])
+  const [tags, setTags] = useState<TagData[]>(props.tags)
 
   const [isSending, setIsSending] = useState(false)
   const [isPaginationFinished, setIsPaginationFinished] = useState(false)
@@ -174,17 +155,46 @@ export default function UserShow(props: Props) {
 
   // Effect
 
+  // TODO: listenするものについて、自分のページでなければ無視して良い気がしてきたが。効率は悪いが一旦listenのままで進めている。
+
   useEffect(() => {
+    // タグ情報の更新を監視
+    const tagQuery = query(collection(firestore, `users/${user?.uid}/tags`), orderBy('name', 'asc'))
+
+    const unsubscribe = onSnapshot(tagQuery, (querySnapshot) => {
+      const fetchedTags = makeDisplayTags(querySnapshot)
+      setTags(fetchedTags)
+    })
+    return unsubscribe
+  }, [user?.uid])
+
+  useEffect(() => {
+    // コンテンツ情報の更新を監視
     const query = createArticlesBaseQuery(user?.uid, aritcleLimit)
     const unsubscribe = onSnapshot(query, (querySnapshot) => {
       const fetchedArticles = querySnapshot.docs.map((doc) => {
-        return configureArticle(doc, categories)
+        const data = Article.makeFromSnapshot(doc)
+        data.configureTagData(tags)
+        return data
       })
 
-      setArticles(fetchedArticles)
+      setContents(fetchedArticles)
     })
     return unsubscribe
   }, [aritcleLimit])
+
+  useEffect(() => {
+    // コンテンツをフィルタリングして表示
+    const selectedTag = tags.find((tag) => tag.isSelected)
+    if (selectedTag?.id === 'all') {
+      setFilteredContents(contents)
+      return
+    }
+    const filteredContents = contents.filter((article) => {
+      return article.tagIDs.includes(selectedTag?.id)
+    })
+    setFilteredContents(filteredContents)
+  }, [contents, tags])
 
   useEffect(() => {
     if (user == null) {
@@ -193,12 +203,10 @@ export default function UserShow(props: Props) {
     const reference = doc(collection(firestore, 'users'), user.uid).withConverter(userConverter)
     const unsubscribe = onSnapshot(reference, (querySnapshot) => {
       const user = querySnapshot.data() as User
-      const categoriesRatio = calcCategoriesRatio(user?.categoriesCount, user?.articlesCount)
-      setCategoriesRatio(categoriesRatio)
       setUser(user)
     })
     return unsubscribe
-  }, [articles])
+  }, [contents])
 
   function createArticlesBaseQuery(uid: string, limitNum: number) {
     return query(
@@ -208,20 +216,33 @@ export default function UserShow(props: Props) {
     ).withConverter(articleConverter)
   }
 
-  function configureArticle(snapshot: QueryDocumentSnapshot, categories: Category[]): Article {
-    const article = snapshot.data() as Article
-    article.id = snapshot.id
-    article.configureCategoryData(categories)
-    return article
-  }
-
   // Actions
 
-  async function onSubmitItem(ogp: OGP, comment: string, category: Category) {
+  async function onSubmitItem(ogp: OGP, comment: string, tags: TagData[]) {
+    if (!isCurrentUser) {
+      return
+    }
     setIsSending(true)
 
     try {
-      await articleRepository.create(ogp, comment, category)
+      const newTags = tags.filter((tag) => tag.id === '')
+      if (newTags.length > 0) {
+        for (const tag of newTags) {
+          const ref: DocumentReference = await addDoc(
+            collection(firestore, `users/${currentUser?.uid}/tags`),
+            {
+              name: tag.name,
+              createdAt: dayjs().toISOString(),
+              updatedAt: dayjs().toISOString(),
+            },
+          )
+          tag.id = ref.id
+        }
+      }
+
+      const loadedTags = await loadTags(user)
+      setTags(loadedTags)
+      await articleRepository.create(ogp, comment, tags)
 
       setIsSending(false)
       toast.success('追加しました。', {
@@ -295,14 +316,16 @@ export default function UserShow(props: Props) {
             pb={10}
           >
             {isCurrentUser && (
-              <AccountSettingPopover
-                signIn={() => {
-                  signOut()
-                }}
-                deleteAccount={async function (): Promise<void> {
-                  await deleteAccount()
-                }}
-              />
+              <Box me={4}>
+                <AccountSettingPopover
+                  signIn={() => {
+                    signOut()
+                  }}
+                  deleteAccount={async function (): Promise<void> {
+                    await deleteAccount()
+                  }}
+                />
+              </Box>
             )}
             <Center w='100%'>
               <UserProfile
@@ -317,59 +340,75 @@ export default function UserShow(props: Props) {
               <AddContentButton isLoading={isSending} onClick={onOpenAddArticleModal} />
             </Center>
           )}
-          <Text fontSize={'4xl'} fontWeight={'extrabold'} m={6}>
-            Comments
-          </Text>
-          {/* 記事一覧 */}
-          <VStack spacing={4} align='center' my={8}>
-            <Box className='col-12' ref={scrollContainerRef}>
-              <SimpleGrid columns={{ sm: 2, md: 3 }} spacing='40px'>
-                {articles.map((article) => (
-                  <div key={article.id}>
-                    <Item
-                      article={article}
-                      isCurrentUser={isCurrentUser}
-                      onClickDelete={(article) => {
-                        setSelectedArticle(article)
-                        onOpenConfirmDeleteModal()
-                      }}
-                      onClickUpdae={() => {
-                        setSelectedArticle(article)
-                        onOpenUpdateArticleModal()
-                      }}
-                    ></Item>
-                  </div>
-                ))}
-              </SimpleGrid>
-            </Box>
-          </VStack>
-          {selectedArticle !== null && (
-            <SimpleModal
-              title={'Delete this article？'}
-              message={`URL: ${selectedArticle.contentURL}`}
-              isOpen={isOpenConfirmDeleteModal}
-              onPositiveAction={async () => {
-                await onClickDelete(selectedArticle)
+          <Box px={8}>
+            <Text fontSize={'4xl'} fontWeight={'extrabold'}>
+              My Comments
+            </Text>
+            {/* タグ */}
+            <TagBar
+              tags={tags}
+              onClickTag={(tag: TagData) => {
+                const newTags = tags.map((t) => {
+                  if (t.id === tag.id) {
+                    return { ...t, isSelected: true }
+                  } else {
+                    return { ...t, isSelected: false }
+                  }
+                })
+                setTags(newTags)
               }}
-              onClose={onCloseConfirmDeleteModal}
             />
-          )}
-          <UpdateArticleModal
-            article={selectedArticle}
-            isOpen={isOpenUpdateArticleModal}
-            onClose={onCloseUpdateArticleModal}
-            onUpdate={async (url: string, title: string, comment: string): Promise<void> => {
-              await onUpdateItem(url, title, comment)
-            }}
-          />
-          <AddArticleModal
-            isOpen={isOpenAddArticleModal}
-            categories={props.categories}
-            onSubmit={async (ogp: OGP, comment: string, category: Category): Promise<void> => {
-              await onSubmitItem(ogp, comment, category)
-            }}
-            onClose={onCloseAddArticleModal}
-          />
+            {/* コンテンツ一覧 */}
+            <VStack spacing={4} align='center' my={8}>
+              <Box className='col-12' ref={scrollContainerRef}>
+                <SimpleGrid columns={{ sm: 2, md: 3 }} spacing='40px'>
+                  {filteredContents.map((article) => (
+                    <div key={article.id}>
+                      <Item
+                        article={article}
+                        isCurrentUser={isCurrentUser}
+                        onClickDelete={(article) => {
+                          setSelectedArticle(article)
+                          onOpenConfirmDeleteModal()
+                        }}
+                        onClickUpdae={() => {
+                          setSelectedArticle(article)
+                          onOpenUpdateArticleModal()
+                        }}
+                      ></Item>
+                    </div>
+                  ))}
+                </SimpleGrid>
+              </Box>
+            </VStack>
+            {selectedArticle !== null && (
+              <SimpleModal
+                title={'Delete this article？'}
+                message={`URL: ${selectedArticle.contentURL}`}
+                isOpen={isOpenConfirmDeleteModal}
+                onPositiveAction={async () => {
+                  await onClickDelete(selectedArticle)
+                }}
+                onClose={onCloseConfirmDeleteModal}
+              />
+            )}
+            <UpdateArticleModal
+              article={selectedArticle}
+              isOpen={isOpenUpdateArticleModal}
+              onClose={onCloseUpdateArticleModal}
+              onUpdate={async (url: string, title: string, comment: string): Promise<void> => {
+                await onUpdateItem(url, title, comment)
+              }}
+            />
+            <AddArticleModal
+              isOpen={isOpenAddArticleModal}
+              onSubmit={async (ogp: OGP, comment: string, tags: TagData[]): Promise<void> => {
+                await onSubmitItem(ogp, comment, tags)
+              }}
+              onClose={onCloseAddArticleModal}
+              tags={tags}
+            />
+          </Box>
         </Box>
       ) : (
         <Box p={4}>
