@@ -296,14 +296,16 @@ export default function UserShow(props: Props) {
             pb={10}
           >
             {isCurrentUser && (
-              <AccountSettingPopover
-                signIn={() => {
-                  signOut()
-                }}
-                deleteAccount={async function (): Promise<void> {
-                  await deleteAccount()
-                }}
-              />
+              <Box me={4}>
+                <AccountSettingPopover
+                  signIn={() => {
+                    signOut()
+                  }}
+                  deleteAccount={async function (): Promise<void> {
+                    await deleteAccount()
+                  }}
+                />
+              </Box>
             )}
             <Center w='100%'>
               <UserProfile
