@@ -2,15 +2,15 @@ import { ToastContainer } from 'react-toastify'
 import Head from 'next/head'
 import Footer from './Fotter'
 import Header from './Header'
-import { Box } from '@chakra-ui/react'
+import { Box, Flex } from '@chakra-ui/react'
 
 export default function Layout({ children }) {
-  const title = 'Myサービス'
-  const description = '〜なサービスです。'
+  const title = 'My Curation'
+  const description = 'My Curation'
   const ogpImageUrl = `${process.env.NEXT_PUBLIC_WEB_URL}/images/ogp_card.png`
 
   return (
-    <div>
+    <Box>
       <Head>
         <title>{title}</title>
         <meta property='og:image' key='ogImage' content={ogpImageUrl} />
@@ -22,11 +22,9 @@ export default function Layout({ children }) {
         ></link>
       </Head>
       <Header />
-      <Box className='container' mt='20px'>
-        {children}
-      </Box>
+      <Box className='container'>{children}</Box>
       <ToastContainer />
       <Footer />
-    </div>
+    </Box>
   )
 }

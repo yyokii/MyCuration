@@ -23,8 +23,7 @@ export default function AccountSettingPopover(props: Props) {
     <Popover>
       <PopoverTrigger>
         <IconButton
-          me={1}
-          size='sm'
+          size='md'
           variant='ghost'
           colorScheme='gray.700'
           aria-label='Settings'
