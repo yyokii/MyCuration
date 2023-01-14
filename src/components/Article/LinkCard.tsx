@@ -21,7 +21,7 @@ export default function LinkCard(props: Props) {
     >
       <Flex me={1} justifyContent='end' alignContent='center'>
         <IconButton
-          size='sm'
+          size='xs'
           variant='ghost'
           colorScheme='gray.700'
           aria-label='Link'
@@ -29,8 +29,8 @@ export default function LinkCard(props: Props) {
           onClick={() => window.open(props.url, '_blank').focus()}
         />
       </Flex>
-      <VStack spacing={2} mx={2} align={'start'}>
-        <Heading color={'gray.700'} fontSize={'md'} fontFamily={'body'} pt={0}>
+      <VStack spacing={1} mx={2} align={'start'}>
+        <Heading color={'gray.700'} fontSize={'sm'} fontFamily={'body'} pt={0}>
           {props.title}
         </Heading>
         <Text color={'gray.700'} fontSize={'xs'} noOfLines={2} lineHeight={'130%'}>

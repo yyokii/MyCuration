@@ -13,6 +13,7 @@ import NormalButton from './common/NormalButton'
 
 type Props = {
   tags: TagData[]
+  maxSelectableCount: number
   handleSelectedTagChange: (tags: TagData[]) => void
 }
 
@@ -20,11 +21,14 @@ export function SelectTag(props: Props) {
   const [newTag, setNewTag] = useState<string>('')
   const [tags, setTags] = useState<TagData[]>(props.tags)
 
-  const isTagNameError = newTag.length > 10
+  const isTagNameError = newTag.length > 10 || newTag.length === 0
 
   const onClickTag = (tag: TagData) => {
+    if (!tag.isSelected && tags.filter((t) => t.isSelected).length >= props.maxSelectableCount) {
+      return
+    }
     const copied = [...tags]
-    const index = copied.findIndex((t) => t.id === tag.id)
+    const index = copied.findIndex((t) => t.name === tag.name)
     copied[index].isSelected = !copied[index].isSelected
     setTags(copied)
 
@@ -51,12 +55,13 @@ export function SelectTag(props: Props) {
   }
 
   return (
-    <VStack>
-      <HStack spacing={4}>
+    <VStack align={'start'}>
+      <HStack spacing={4} w={'full'} height={'40px'} overflow={'auto'}>
         {tags.map((tag) => (
           <Tag
             size='md'
             key={tag.name}
+            flexShrink='0'
             borderRadius='full'
             variant='solid'
             colorScheme={tag.isSelected ? 'green' : 'gray'}
@@ -68,9 +73,10 @@ export function SelectTag(props: Props) {
           </Tag>
         ))}
       </HStack>
-      <FormControl isInvalid={isTagNameError}>
+      <FormControl>
         <HStack>
           <Input
+            w={'200px'}
             id='tag'
             placeholder='new tag'
             value={newTag}

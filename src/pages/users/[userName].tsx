@@ -319,7 +319,7 @@ export default function UserShow(props: Props) {
             </Center>
           )}
           <Text fontSize={'4xl'} fontWeight={'extrabold'} m={6}>
-            Comments
+            My Comments
           </Text>
           {/* 記事一覧 */}
           <VStack spacing={4} align='center' my={8}>

@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   FormControl,
   FormErrorMessage,
@@ -11,6 +12,7 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
+  Textarea,
   VStack,
 } from '@chakra-ui/react'
 import { useRef, useState } from 'react'
@@ -20,6 +22,7 @@ import { OGPRepository } from '../../repository/ogpRepository'
 import { RepositoryFactory } from '../../repository/repository'
 import { SelectTag } from '../SelectTag'
 import { Tag } from '../../types/tag'
+import LinkCard from '../Article/LinkCard'
 
 type Props = {
   isOpen: boolean
@@ -34,12 +37,24 @@ export function AddArticleModal(props: Props) {
   const [ogp, setOGP] = useState<OGP>(OGP.empty())
   const [comment, setComment] = useState('')
   const [selectedTags, setSelectedTags] = useState<Tag[]>([])
+  const maxSelectableTagCount = 3
 
   const ogpRepository: OGPRepository = RepositoryFactory.get('ogp')
 
   // Validation
   const isContentURLError = ogp.url === '' || ogp.url.length > 2000
-  const canSubmit = !isContentURLError && selectedTags.length !== 0
+  const canSubmit = !isContentURLError && selectedTags.length <= 3
+
+  const resetContent = () => {
+    setOGP(OGP.empty())
+    setComment('')
+    setSelectedTags([])
+  }
+
+  const close = () => {
+    resetContent()
+    props.onClose()
+  }
 
   async function onChangeInputURL(input: string) {
     if (isValidUrl(input)) {
@@ -47,28 +62,28 @@ export function AddArticleModal(props: Props) {
       if (ogp) {
         setOGP(ogp)
       }
+    } else {
+      setOGP(OGP.empty())
     }
   }
 
   async function onSubmit() {
     props.onSubmit(ogp, comment, selectedTags)
-    setOGP(OGP.empty())
-    setComment('')
-    setSelectedTags([])
-    props.onClose()
+    close()
   }
 
   return (
     <>
-      <Modal initialFocusRef={initialRef} isOpen={props.isOpen} onClose={props.onClose}>
+      <Modal initialFocusRef={initialRef} isOpen={props.isOpen} onClose={close}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Add article</ModalHeader>
+          <ModalHeader>Add Content</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             <VStack>
               <FormControl>
                 <FormControl isInvalid={isContentURLError}>
+                  {/* Input URL */}
                   <FormLabel htmlFor='url'>URL</FormLabel>
                   <Input
                     ref={initialRef}
@@ -81,34 +96,45 @@ export function AddArticleModal(props: Props) {
                     <FormErrorMessage>URL length is 0 to 2000</FormErrorMessage>
                   )}
                 </FormControl>
+                {ogp.url !== '' && (
+                  <Box width={'70%'} mt={2}>
+                    <LinkCard
+                      title={ogp.title}
+                      description={ogp.description}
+                      siteName={ogp.siteName}
+                      url={ogp.url}
+                    />
+                  </Box>
+                )}
 
-                <FormLabel htmlFor='url'>Title</FormLabel>
+                {/* Input Comment */}
+                <FormLabel htmlFor='comment' mt={4}>
+                  My Comment
+                </FormLabel>
+                <Textarea
+                  id='comment'
+                  placeholder='Your comment'
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                />
 
-                <FormLabel mt={4}>Category</FormLabel>
-
+                {/* Input Tag */}
+                <FormLabel mt={4}>Tag (Max {maxSelectableTagCount} tags can be selected)</FormLabel>
                 <SelectTag
                   tags={props.tags}
                   handleSelectedTagChange={(tags) => {
                     setSelectedTags(tags)
                   }}
-                />
-                <FormLabel htmlFor='comment' mt={4}>
-                  Comment
-                </FormLabel>
-                <Input
-                  id='comment'
-                  placeholder='Your comment'
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
+                  maxSelectableCount={maxSelectableTagCount}
                 />
               </FormControl>
             </VStack>
           </ModalBody>
           <ModalFooter>
             <Button colorScheme='blue' disabled={!canSubmit} mr={3} onClick={onSubmit}>
-              Save
+              OK
             </Button>
-            <Button onClick={props.onClose}>Cancel</Button>
+            <Button onClick={close}>Cancel</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
