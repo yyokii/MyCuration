@@ -1,21 +1,13 @@
-import { Button } from '@chakra-ui/react'
+import { Button, ButtonProps } from '@chakra-ui/react'
 
-type Props = {
-  title: string
-  isSending: boolean
-  onClick: () => void
-}
-
-export default function NormalButton(props: Props) {
+export default function NormalButton(props: ButtonProps) {
   return (
     <Button
-      isLoading={props.isSending}
-      loadingText='Submitting'
+      {...props}
+      loadingText='Loading'
       colorScheme='teal'
       variant='outline'
       onClick={props.onClick}
-    >
-      {props.title}
-    </Button>
+    />
   )
 }
