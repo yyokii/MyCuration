@@ -6,12 +6,14 @@ import {
   collection,
   deleteDoc,
   doc,
+  DocumentData,
   DocumentReference,
   getDocs,
   limit,
   onSnapshot,
   orderBy,
   query,
+  QuerySnapshot,
   updateDoc,
 } from 'firebase/firestore'
 import Layout from '../../components/Layout'
@@ -33,12 +35,13 @@ import UserProfile from '../../components/UserProfile'
 import AddContentButton from '../../components/AddContentButton'
 import AccountSettingPopover from '../../components/AccountSettingPopover'
 import { OGP } from '../../types/ogp'
-import { Tag } from '../../types/tag'
+import { Tag as TagData } from '../../types/tag'
 import dayjs from 'dayjs'
+import { TagBar } from '../../components/TagBar'
 
 type Props = {
   user: User
-  tags: Tag[]
+  tags: TagData[]
 }
 
 const emptyProps: Props = {
@@ -87,16 +90,23 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 }
 
-async function loadTags(user: User): Promise<Tag[]> {
+async function loadTags(user: User): Promise<TagData[]> {
   const snapshot = await getDocs(
     query(collection(firestore, `users/${user.uid}/tags`), orderBy('name')),
   )
 
-  return snapshot.docs.map((doc) => {
-    const tag = doc.data() as Tag
+  return makeDisplayTags(snapshot)
+}
+
+const makeDisplayTags = (snapshot: QuerySnapshot<DocumentData>) => {
+  const tags = snapshot.docs.map((doc) => {
+    const tag = doc.data() as TagData
     tag.id = doc.id
     return tag
   })
+  const allTag = new TagData('all', 'All', '', '', true)
+  tags.unshift(allTag)
+  return tags
 }
 
 type Query = {
@@ -134,8 +144,9 @@ export default function UserShow(props: Props) {
   // State
 
   const [user, setUser] = useState<User>(props.user) // 本画面で表示する対象ユーザー
-  const [articles, setArticles] = useState<Article[]>([])
-  const [tags, setTags] = useState<Tag[]>(props.tags)
+  const [contents, setContents] = useState<Article[]>([])
+  const [filteredContents, setFilteredContents] = useState<Article[]>([])
+  const [tags, setTags] = useState<TagData[]>(props.tags)
 
   const [isSending, setIsSending] = useState(false)
   const [isPaginationFinished, setIsPaginationFinished] = useState(false)
@@ -151,11 +162,7 @@ export default function UserShow(props: Props) {
     const tagQuery = query(collection(firestore, `users/${user?.uid}/tags`), orderBy('name', 'asc'))
 
     const unsubscribe = onSnapshot(tagQuery, (querySnapshot) => {
-      const fetchedTags = querySnapshot.docs.map((doc) => {
-        const tag = doc.data() as Tag
-        tag.id = doc.id
-        return tag
-      })
+      const fetchedTags = makeDisplayTags(querySnapshot)
       setTags(fetchedTags)
     })
     return unsubscribe
@@ -171,10 +178,23 @@ export default function UserShow(props: Props) {
         return data
       })
 
-      setArticles(fetchedArticles)
+      setContents(fetchedArticles)
     })
     return unsubscribe
-  }, [aritcleLimit, tags])
+  }, [aritcleLimit])
+
+  useEffect(() => {
+    // コンテンツをフィルタリングして表示
+    const selectedTag = tags.find((tag) => tag.isSelected)
+    if (selectedTag?.id === 'all') {
+      setFilteredContents(contents)
+      return
+    }
+    const filteredContents = contents.filter((article) => {
+      return article.tagIDs.includes(selectedTag?.id)
+    })
+    setFilteredContents(filteredContents)
+  }, [contents, tags])
 
   useEffect(() => {
     if (user == null) {
@@ -186,7 +206,7 @@ export default function UserShow(props: Props) {
       setUser(user)
     })
     return unsubscribe
-  }, [articles])
+  }, [contents])
 
   function createArticlesBaseQuery(uid: string, limitNum: number) {
     return query(
@@ -198,7 +218,7 @@ export default function UserShow(props: Props) {
 
   // Actions
 
-  async function onSubmitItem(ogp: OGP, comment: string, tags: Tag[]) {
+  async function onSubmitItem(ogp: OGP, comment: string, tags: TagData[]) {
     if (!isCurrentUser) {
       return
     }
@@ -320,59 +340,75 @@ export default function UserShow(props: Props) {
               <AddContentButton isLoading={isSending} onClick={onOpenAddArticleModal} />
             </Center>
           )}
-          <Text fontSize={'4xl'} fontWeight={'extrabold'} m={6}>
-            My Comments
-          </Text>
-          {/* 記事一覧 */}
-          <VStack spacing={4} align='center' my={8}>
-            <Box className='col-12' ref={scrollContainerRef}>
-              <SimpleGrid columns={{ sm: 2, md: 3 }} spacing='40px'>
-                {articles.map((article) => (
-                  <div key={article.id}>
-                    <Item
-                      article={article}
-                      isCurrentUser={isCurrentUser}
-                      onClickDelete={(article) => {
-                        setSelectedArticle(article)
-                        onOpenConfirmDeleteModal()
-                      }}
-                      onClickUpdae={() => {
-                        setSelectedArticle(article)
-                        onOpenUpdateArticleModal()
-                      }}
-                    ></Item>
-                  </div>
-                ))}
-              </SimpleGrid>
-            </Box>
-          </VStack>
-          {selectedArticle !== null && (
-            <SimpleModal
-              title={'Delete this article？'}
-              message={`URL: ${selectedArticle.contentURL}`}
-              isOpen={isOpenConfirmDeleteModal}
-              onPositiveAction={async () => {
-                await onClickDelete(selectedArticle)
+          <Box px={8}>
+            <Text fontSize={'4xl'} fontWeight={'extrabold'}>
+              My Comments
+            </Text>
+            {/* タグ */}
+            <TagBar
+              tags={tags}
+              onClickTag={(tag: TagData) => {
+                const newTags = tags.map((t) => {
+                  if (t.id === tag.id) {
+                    return { ...t, isSelected: true }
+                  } else {
+                    return { ...t, isSelected: false }
+                  }
+                })
+                setTags(newTags)
               }}
-              onClose={onCloseConfirmDeleteModal}
             />
-          )}
-          <UpdateArticleModal
-            article={selectedArticle}
-            isOpen={isOpenUpdateArticleModal}
-            onClose={onCloseUpdateArticleModal}
-            onUpdate={async (url: string, title: string, comment: string): Promise<void> => {
-              await onUpdateItem(url, title, comment)
-            }}
-          />
-          <AddArticleModal
-            isOpen={isOpenAddArticleModal}
-            onSubmit={async (ogp: OGP, comment: string, tags: Tag[]): Promise<void> => {
-              await onSubmitItem(ogp, comment, tags)
-            }}
-            onClose={onCloseAddArticleModal}
-            tags={tags}
-          />
+            {/* コンテンツ一覧 */}
+            <VStack spacing={4} align='center' my={8}>
+              <Box className='col-12' ref={scrollContainerRef}>
+                <SimpleGrid columns={{ sm: 2, md: 3 }} spacing='40px'>
+                  {filteredContents.map((article) => (
+                    <div key={article.id}>
+                      <Item
+                        article={article}
+                        isCurrentUser={isCurrentUser}
+                        onClickDelete={(article) => {
+                          setSelectedArticle(article)
+                          onOpenConfirmDeleteModal()
+                        }}
+                        onClickUpdae={() => {
+                          setSelectedArticle(article)
+                          onOpenUpdateArticleModal()
+                        }}
+                      ></Item>
+                    </div>
+                  ))}
+                </SimpleGrid>
+              </Box>
+            </VStack>
+            {selectedArticle !== null && (
+              <SimpleModal
+                title={'Delete this article？'}
+                message={`URL: ${selectedArticle.contentURL}`}
+                isOpen={isOpenConfirmDeleteModal}
+                onPositiveAction={async () => {
+                  await onClickDelete(selectedArticle)
+                }}
+                onClose={onCloseConfirmDeleteModal}
+              />
+            )}
+            <UpdateArticleModal
+              article={selectedArticle}
+              isOpen={isOpenUpdateArticleModal}
+              onClose={onCloseUpdateArticleModal}
+              onUpdate={async (url: string, title: string, comment: string): Promise<void> => {
+                await onUpdateItem(url, title, comment)
+              }}
+            />
+            <AddArticleModal
+              isOpen={isOpenAddArticleModal}
+              onSubmit={async (ogp: OGP, comment: string, tags: TagData[]): Promise<void> => {
+                await onSubmitItem(ogp, comment, tags)
+              }}
+              onClose={onCloseAddArticleModal}
+              tags={tags}
+            />
+          </Box>
         </Box>
       ) : (
         <Box p={4}>
