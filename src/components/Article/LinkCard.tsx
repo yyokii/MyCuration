@@ -21,6 +21,7 @@ export default function LinkCard(props: Props) {
     >
       <Flex me={1} justifyContent='end' alignContent='center'>
         <IconButton
+          _focus={{ boxShadow: 'none' }}
           size='xs'
           variant='ghost'
           colorScheme='gray.700'
