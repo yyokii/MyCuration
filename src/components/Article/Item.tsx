@@ -36,7 +36,7 @@ export default function Item(props: Props) {
         </Flex>
       )}
       <Stack spacing={2} mx={4}>
-        <VStack align={'start'} spacing={0}>
+        <VStack align={'start'} spacing={1}>
           <HStack>
             {props.article.tags.map((tag) => (
               <Text
