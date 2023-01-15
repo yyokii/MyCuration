@@ -1,4 +1,4 @@
-export class Tag {
+class Tag {
   id: string
   name: string
   createdAt: string
@@ -16,4 +16,16 @@ export class Tag {
   static makeNewTagWithName(name: string, isSelected: boolean): Tag {
     return new Tag('', name, null, null, isSelected)
   }
+
+  static makeAllTag(): Tag {
+    return new Tag('all', 'All', null, null, false)
+  }
+
+  isAllTag(): boolean {
+    return this.id === 'all' || this.name === allTagName
+  }
 }
+
+const allTagName = 'All'
+
+export { Tag, allTagName }

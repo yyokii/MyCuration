@@ -8,7 +8,7 @@ import {
   VStack,
 } from '@chakra-ui/react'
 import { useState } from 'react'
-import { Tag as TagData } from '../types/tag'
+import { allTagName, Tag as TagData } from '../types/tag'
 import NormalButton from './common/NormalButton'
 
 type Props = {
@@ -37,6 +37,13 @@ export function SelectTag(props: Props) {
 
   const onClickAdd = (name: string) => {
     if (isTagNameError || tags.find((tag) => tag.name === name)) {
+      setNewTag('')
+      return
+    }
+
+    if (name == allTagName) {
+      // コンテンツ一覧表示画面で「すべて」を意味するタグをフィルター要素として表示しているので、同じ意味のタグは作成できないようにする。
+      // TODO: バックエンドの処理として制限したいかもしれない。
       setNewTag('')
       return
     }
