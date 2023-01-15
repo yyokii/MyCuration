@@ -104,7 +104,8 @@ const makeDisplayTags = (snapshot: QuerySnapshot<DocumentData>) => {
     tag.id = doc.id
     return tag
   })
-  const allTag = new TagData('all', 'All', '', '', true)
+  const allTag = TagData.makeAllTag()
+  allTag.isSelected = true
   tags.unshift(allTag)
   return tags
 }
@@ -350,9 +351,11 @@ export default function UserShow(props: Props) {
               onClickTag={(tag: TagData) => {
                 const newTags = tags.map((t) => {
                   if (t.id === tag.id) {
-                    return { ...t, isSelected: true }
+                    t.isSelected = true
+                    return t
                   } else {
-                    return { ...t, isSelected: false }
+                    t.isSelected = false
+                    return t
                   }
                 })
                 setTags(newTags)
@@ -406,7 +409,13 @@ export default function UserShow(props: Props) {
                 await onSubmitItem(ogp, comment, tags)
               }}
               onClose={onCloseAddArticleModal}
-              tags={tags}
+              tags={tags.flatMap((tag) => {
+                if (tag.isAllTag) {
+                  return []
+                } else {
+                  return tag
+                }
+              })}
             />
           </Box>
         </Box>
