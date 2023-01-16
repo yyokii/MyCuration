@@ -51,14 +51,7 @@ export default function Onboarding() {
     const userRef = doc(collection(firestore, 'users'), currentUser.uid)
     const userNamesRef = doc(userNamesCollection, userName)
 
-    const user: User = new User(
-      currentUser.uid,
-      true,
-      userName,
-      currentUser.profileImageURL,
-      0,
-      new Map<string, number>(),
-    )
+    const user: User = new User(currentUser.uid, true, userName, currentUser.profileImageURL, 0)
 
     setIsSending(true)
     await runTransaction(firestore, async (transaction) => {

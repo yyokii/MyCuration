@@ -39,14 +39,7 @@ function AppInit() {
           user = await fetchUser(firebaseUser.uid)
         } else {
           console.log('User detail is not registered.')
-          user = new User(
-            firebaseUser.uid,
-            false,
-            ``,
-            googleProviderData.photoURL,
-            0,
-            new Map<string, number>(),
-          )
+          user = new User(firebaseUser.uid, false, ``, googleProviderData.photoURL, 0)
           if (router.isReady) {
             router.push('/onboarding')
           }

@@ -9,7 +9,6 @@ class User {
   name: string
   profileImageURL: string
   articlesCount: number
-  categoriesCount: Map<string, number>
 
   constructor(
     uid: string = '',
@@ -17,14 +16,12 @@ class User {
     name: string = '',
     profileImageURL: string = '',
     articlesCount: number = 0,
-    categoriesCount: Map<string, number> = new Map(),
   ) {
     this.uid = uid
     this.isFinishedRegisterUserInfo = isFinishedRegisterUserInfo
     this.name = name
     this.profileImageURL = profileImageURL
     this.articlesCount = articlesCount
-    this.categoriesCount = categoriesCount
   }
 }
 
@@ -35,7 +32,6 @@ const userConverter = {
       profileImageURL: user.profileImageURL,
       isFinishedRegisterUserInfo: user.isFinishedRegisterUserInfo,
       articlesCount: user.articlesCount,
-      categoriesCount: user.categoriesCount,
     }
   },
   fromFirestore(snapshot: QueryDocumentSnapshot): User {
@@ -46,7 +42,6 @@ const userConverter = {
       data.name,
       data.profileImageURL,
       data.articlesCount,
-      data.categoriesCount,
     )
     return user
   },
