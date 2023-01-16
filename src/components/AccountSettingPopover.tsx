@@ -13,11 +13,10 @@ import {
 } from '@chakra-ui/react'
 
 type Props = {
-  signIn: () => void
+  signOut: () => void
   deleteAccount: () => void
 }
 
-// TODO: need to fix warning, https://github.com/chakra-ui/chakra-ui/issues/4816
 export default function AccountSettingPopover(props: Props) {
   return (
     <Popover>
@@ -41,7 +40,7 @@ export default function AccountSettingPopover(props: Props) {
               variant='ghost'
               w='200px'
               onClick={() => {
-                props.signIn()
+                props.signOut()
               }}
             >
               Sign out

@@ -1,5 +1,5 @@
 import { signOut as signOutCurrentUser } from 'firebase/auth'
-import { collection, doc, getDoc, QueryDocumentSnapshot } from 'firebase/firestore'
+import { collection, doc, getDoc } from 'firebase/firestore'
 import { User, userConverter } from '../types/user'
 import { auth, firestore } from './firebase'
 
