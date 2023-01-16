@@ -21,6 +21,7 @@ import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { toast } from 'react-toastify'
 import { Article, articleConverter } from '../../types/article'
 import { auth, firestore } from '../../lib/firebase'
+import { signOut as userSignOut } from '../../lib/firebase-auth'
 import { fetchUserWithName } from '../../lib/db'
 import Item from '../../components/Article/Item'
 import { Box, Center, SimpleGrid, useDisclosure, Text, VStack } from '@chakra-ui/react'
@@ -285,7 +286,7 @@ export default function UserShow(props: Props) {
     }
 
     try {
-      await signOut()
+      await userSignOut()
     } catch (error) {
       console.log(error)
     }
@@ -319,7 +320,7 @@ export default function UserShow(props: Props) {
             {isCurrentUser && (
               <Box me={4}>
                 <AccountSettingPopover
-                  signIn={() => {
+                  signOut={() => {
                     signOut()
                   }}
                   deleteAccount={async function (): Promise<void> {
