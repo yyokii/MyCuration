@@ -49,13 +49,11 @@ const userConverter = {
 
 const userConverterForAdmin = {
   toFirestore(user: User): FirebaseFirestore.DocumentData {
-    const categoriesCountObj = Object.fromEntries(user.categoriesCount)
     return {
       name: user.name,
       profileImageURL: user.profileImageURL,
       isFinishedRegisterUserInfo: user.isFinishedRegisterUserInfo,
       articlesCount: user.articlesCount,
-      categoriesCount: categoriesCountObj,
     }
   },
   fromFirestore(snapshot: FirebaseFirestore.QueryDocumentSnapshot): User {
@@ -66,7 +64,6 @@ const userConverterForAdmin = {
       data.name,
       data.profileImageURL,
       data.articlesCount,
-      data.categoriesCount,
     )
     return user
   },
