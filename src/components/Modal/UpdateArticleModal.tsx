@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   FormControl,
   FormLabel,
@@ -15,12 +16,14 @@ import { useEffect, useRef, useState } from 'react'
 import { OGPRepository } from '../../repository/ogpRepository'
 import { RepositoryFactory } from '../../repository/repository'
 import { Article } from '../../types/article'
+import { OGP } from '../../types/ogp'
 import { isValidUrl } from '../../utils/url'
+import LinkCard from '../Article/LinkCard'
 
 type Props = {
   article: Article
   isOpen: boolean
-  onUpdate: (url: string, title: string, comment: string) => void
+  onUpdate: (ogp: OGP, comment: string) => void
   onClose: () => void
 }
 
@@ -28,7 +31,8 @@ export function UpdateArticleModal(props: Props) {
   // State
   const initialRef = useRef()
   const [contentURL, setContentURL] = useState('')
-  const [title, setTitle] = useState('')
+  const [ogp, setOGP] = useState<OGP>(OGP.empty())
+
   const [comment, setComment] = useState('')
 
   const ogpRepository: OGPRepository = RepositoryFactory.get('ogp')
@@ -45,13 +49,15 @@ export function UpdateArticleModal(props: Props) {
     if (isValidUrl(input)) {
       const ogp = await ogpRepository.get(input)
       if (ogp) {
-        setTitle(ogp.title)
+        setOGP(ogp)
       }
+    } else {
+      setOGP(OGP.empty())
     }
   }
 
   async function onUpdateItem() {
-    props.onUpdate(contentURL, title, comment)
+    props.onUpdate(ogp, comment)
     setContentURL('')
     setComment('')
     props.onClose()
@@ -75,10 +81,16 @@ export function UpdateArticleModal(props: Props) {
                   onChange={(e) => onChangeInputURL(e.target.value)}
                 />
               </FormControl>
-
-              <FormLabel htmlFor='url'>Title</FormLabel>
-              <Input id='title' value={title} onChange={(e) => setTitle(e.target.value)} required />
-
+              {ogp.url !== '' && (
+                <Box width={'70%'} mt={2}>
+                  <LinkCard
+                    title={ogp.title}
+                    description={ogp.description}
+                    siteName={ogp.siteName}
+                    url={ogp.url}
+                  />
+                </Box>
+              )}
               <FormControl mt={4}>
                 <FormLabel>Comment</FormLabel>
                 <Input
