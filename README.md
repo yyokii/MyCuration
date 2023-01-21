@@ -6,7 +6,11 @@ Start firebase emulator
 
 This command compiles Funcitons and starts firebase emulator.
 
-## Commands
+## Deploy
+
+`yarn run deploy`
+
+## Other Commands
 
 - Import emulators settings
 
