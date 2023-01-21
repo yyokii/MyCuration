@@ -1,4 +1,5 @@
 import { Box, Flex } from '@chakra-ui/react'
+import Image from 'next/image'
 
 export default function Header() {
   return (
@@ -12,7 +13,15 @@ export default function Header() {
       borderStyle={'solid'}
       borderColor={'gray.300'}
     >
-      <Box mx={2}>My Curation</Box>
+      <Image
+        src='/images/icon.png'
+        width={32}
+        height={32}
+        alt='My curation'
+        onClick={() => {
+          window.location.href = '/'
+        }}
+      />
     </Flex>
   )
 }
