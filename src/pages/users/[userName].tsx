@@ -261,13 +261,16 @@ export default function UserShow(props: Props) {
     }
   }
 
-  async function onUpdateItem(url: string, title: string, comment: string) {
+  async function onUpdateItem(ogp: OGP, comment: string) {
     setIsSending(true)
     const docRef = doc(firestore, `users/${currentUser.uid}/articles`, selectedArticle.id)
     await updateDoc(docRef, {
-      contentURL: url,
-      title: title,
+      contentURL: ogp.url,
+      ogTitle: ogp.title,
+      ogDescription: ogp.description,
+      ogSiteName: ogp.siteName,
       comment: comment,
+      updatedAt: dayjs().toISOString(),
     })
     setIsSending(false)
     setSelectedArticle(null)
@@ -400,8 +403,8 @@ export default function UserShow(props: Props) {
               article={selectedArticle}
               isOpen={isOpenUpdateArticleModal}
               onClose={onCloseUpdateArticleModal}
-              onUpdate={async (url: string, title: string, comment: string): Promise<void> => {
-                await onUpdateItem(url, title, comment)
+              onUpdate={async (ogp: OGP, comment: string): Promise<void> => {
+                await onUpdateItem(ogp, comment)
               }}
             />
             <AddArticleModal
