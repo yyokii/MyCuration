@@ -16,7 +16,7 @@ export function TagBar(props: Props) {
           flexShrink='0'
           borderRadius='full'
           variant='solid'
-          colorScheme={tag.isSelected ? 'green' : 'gray'}
+          colorScheme={tag.isSelected ? 'orange' : 'gray'}
           onClick={() => {
             props.onClickTag(tag)
           }}
