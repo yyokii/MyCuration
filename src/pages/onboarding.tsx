@@ -33,8 +33,10 @@ export default function Onboarding() {
 
   useEffect(() => {
     if (currentUser && currentUser.isFinishedRegisterUserInfo) {
+      console.log('📝 ✅ currentuser: ', currentUser)
       router.push(`/users/${currentUser.name}`)
     }
+    console.log('📝 currentuser: ', currentUser)
   }, [currentUser])
 
   async function onSubmitItem() {
