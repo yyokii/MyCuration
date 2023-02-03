@@ -1,10 +1,13 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+module.exports = {
   reactStrictMode: true,
-  images: {
-    // TODO: remove this when we dont need it anymore
-    domains: ['lh3.googleusercontent.com', `images.unsplash.com`],
+
+  async rewrites() {
+    return [
+      {
+        source: '/__/auth/:path*',
+        destination: `https://${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.firebaseapp.com/__/auth/:path*`,
+      },
+    ]
   },
 }
-
-module.exports = nextConfig
