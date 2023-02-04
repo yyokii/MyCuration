@@ -33,10 +33,8 @@ export default function Onboarding() {
 
   useEffect(() => {
     if (currentUser && currentUser.isFinishedRegisterUserInfo) {
-      console.log('📝 ✅ currentuser: ', currentUser)
       router.push(`/users/${currentUser.name}`)
     }
-    console.log('📝 currentuser: ', currentUser)
   }, [currentUser])
 
   async function onSubmitItem() {
@@ -60,6 +58,7 @@ export default function Onboarding() {
       // Set user data
       transaction.set(userRef, {
         name: userName,
+        isFinishedRegisterUserInfo: true,
         profileImageURL: currentUser.profileImageURL,
         articlesCount: 0,
         uid: currentUser.uid,
