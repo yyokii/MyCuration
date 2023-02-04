@@ -16,9 +16,14 @@ const AuthRedirectPage: NextPage = () => {
     }
 
     ;(async () => {
+      /*
+       getRedirectResultがSafariでうまく機能しない問題がある。 https://github.com/firebase/firebase-js-sdk/issues/6716
+       vercelのrewriteを利用して対応している。https://zenn.dev/s7/scraps/a5188235db00d0
+       */
       const result = await firebaseAuth.getRedirectResult(auth)
       if (result == null) {
         // result がない時は認証前
+
         // `auth/redirect-cancelled-by-user` 等のエラー検証が必要
         // https://firebase.google.com/docs/reference/js/auth#autherrorcodes
         await firebaseAuth
@@ -39,7 +44,7 @@ const AuthRedirectPage: NextPage = () => {
         }
       }
     })()
-  }, [router.isReady])
+  }, [router, router.isReady])
 
   return (
     <Layout>
