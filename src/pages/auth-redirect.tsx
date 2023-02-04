@@ -23,7 +23,6 @@ const AuthRedirectPage: NextPage = () => {
       const result = await firebaseAuth.getRedirectResult(auth)
       if (result == null) {
         // result がない時は認証前
-
         // `auth/redirect-cancelled-by-user` 等のエラー検証が必要
         // https://firebase.google.com/docs/reference/js/auth#autherrorcodes
         await firebaseAuth
