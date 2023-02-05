@@ -4,12 +4,13 @@ import {
   FormErrorMessage,
   FormLabel,
   Input,
+  Spinner,
   Text,
   VStack,
 } from '@chakra-ui/react'
 import { collection, doc, getDoc, runTransaction } from 'firebase/firestore'
 import { useRouter } from 'next/router'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import NormalButton from '../components/common/NormalButton'
 import Layout from '../components/Layout'
 import { useCurrentUser } from '../hooks/useCurrentUser'
@@ -97,35 +98,31 @@ export default function Onboarding() {
 
   return (
     <Layout>
-      {currentUser == null ? (
-        <div>loading</div>
-      ) : (
-        <Box>
-          <VStack mx={4} my={16} spacing={8}>
-            <Text fontSize='3xl'>User name</Text>
-            <FormControl maxWidth={'400px'} isInvalid={isInputError}>
-              <FormLabel htmlFor='url'>Plese input your user name.</FormLabel>
-              <Input
-                ref={initialRef}
-                id='user name'
-                placeholder='user name'
-                value={userName}
-                onChange={(e) => onChangeUserName(e.target.value)}
-                required
-              />
-              {isUserNameNotValid && (
-                <FormErrorMessage>User name is less than 100 characters.</FormErrorMessage>
-              )}
-              {isAlreadyRegistered && (
-                <FormErrorMessage>This name is already registered.</FormErrorMessage>
-              )}
-            </FormControl>
-            <NormalButton title='OK' isLoading={isSending} onClick={onSubmitItem}>
-              OK
-            </NormalButton>
-          </VStack>
-        </Box>
-      )}
+      <Box>
+        <VStack mx={4} my={16} spacing={8}>
+          <Text fontSize='3xl'>User name</Text>
+          <FormControl maxWidth={'400px'} isInvalid={isInputError}>
+            <FormLabel htmlFor='url'>Plese input your user name.</FormLabel>
+            <Input
+              ref={initialRef}
+              id='user name'
+              placeholder='user name'
+              value={userName}
+              onChange={(e) => onChangeUserName(e.target.value)}
+              required
+            />
+            {isUserNameNotValid && (
+              <FormErrorMessage>User name is less than 100 characters.</FormErrorMessage>
+            )}
+            {isAlreadyRegistered && (
+              <FormErrorMessage>This name is already registered.</FormErrorMessage>
+            )}
+          </FormControl>
+          <NormalButton title='OK' isLoading={isSending} onClick={onSubmitItem}>
+            OK
+          </NormalButton>
+        </VStack>
+      </Box>
     </Layout>
   )
 }
