@@ -14,7 +14,7 @@ type Props = {
 export default function Item(props: Props) {
   const basePadding = 6
   return (
-    <Box w='230px' bg={'white'} boxShadow={'md'} rounded={'md'} overflow={'hidden'} pb={2}>
+    <Box w='100%' bg={'white'} boxShadow={'md'} rounded={'md'} overflow={'hidden'} pb={2}>
       {props.isCurrentUser && (
         <Flex mt={1} me={1} justifyContent='end' alignContent='center'>
           <IconButton

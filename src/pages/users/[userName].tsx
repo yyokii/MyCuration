@@ -345,7 +345,7 @@ export default function UserShow(props: Props) {
               <AddContentButton isLoading={isSending} onClick={onOpenAddArticleModal} />
             </Center>
           )}
-          <Box px={8}>
+          <Box px={2}>
             <Text fontSize={'4xl'} fontWeight={'extrabold'}>
               My Comments
             </Text>
@@ -366,28 +366,26 @@ export default function UserShow(props: Props) {
               }}
             />
             {/* コンテンツ一覧 */}
-            <VStack spacing={4} align='center' my={8}>
-              <Box className='col-12' ref={scrollContainerRef}>
-                <SimpleGrid columns={{ sm: 2, md: 3 }} spacing='40px'>
-                  {filteredContents.map((article) => (
-                    <div key={article.id}>
-                      <Item
-                        article={article}
-                        isCurrentUser={isCurrentUser}
-                        onClickDelete={(article) => {
-                          setSelectedArticle(article)
-                          onOpenConfirmDeleteModal()
-                        }}
-                        onClickUpdae={() => {
-                          setSelectedArticle(article)
-                          onOpenUpdateArticleModal()
-                        }}
-                      ></Item>
-                    </div>
-                  ))}
-                </SimpleGrid>
-              </Box>
-            </VStack>
+            <Box ref={scrollContainerRef} mt={2}>
+              <SimpleGrid minChildWidth='174px' spacing='10px'>
+                {filteredContents.map((article) => (
+                  <div key={article.id}>
+                    <Item
+                      article={article}
+                      isCurrentUser={isCurrentUser}
+                      onClickDelete={(article) => {
+                        setSelectedArticle(article)
+                        onOpenConfirmDeleteModal()
+                      }}
+                      onClickUpdae={() => {
+                        setSelectedArticle(article)
+                        onOpenUpdateArticleModal()
+                      }}
+                    ></Item>
+                  </div>
+                ))}
+              </SimpleGrid>
+            </Box>
             {selectedArticle !== null && (
               <SimpleModal
                 title={'Delete this article？'}
