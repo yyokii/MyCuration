@@ -11,7 +11,6 @@ async function checkIfRegistered(uid: string) {
 }
 
 async function fetchUser(uid: string): Promise<User> {
-  // uidからユーザー情報を取得
   const userDocRef = doc(collection(firestore, 'users'), uid).withConverter(userConverter)
   const userDoc = await getDoc(userDocRef)
 

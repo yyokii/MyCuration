@@ -1,5 +1,18 @@
 import { firestore } from './firebase_admin'
 import dayjs from 'dayjs'
+import { User, userConverterForAdmin } from '../types/user'
+
+export async function fetchUser(uid: string): Promise<User> {
+  const userDocRef = firestore.collection('users').doc(uid).withConverter(userConverterForAdmin)
+  const userDoc = await userDocRef.get()
+
+  if (!userDoc.exists) {
+    return
+  }
+
+  const user = userDoc.data() as User
+  return user
+}
 
 export async function createArticle(
   uid: string,

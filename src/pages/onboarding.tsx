@@ -10,19 +10,47 @@ import {
 import { collection, doc, getDoc, runTransaction } from 'firebase/firestore'
 import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
-import { useSetRecoilState } from 'recoil'
 import NormalButton from '../components/common/NormalButton'
 import Layout from '../components/Layout'
 import { useCurrentUser } from '../hooks/useCurrentUser'
 import { firestore } from '../lib/firebase'
-import { userState } from '../states/user'
+import { auth } from '../lib/firebase_admin'
 import { User } from '../types/user'
+import nookies from 'nookies'
+import { GetServerSideProps } from 'next'
+import { fetchUser } from '../lib/db-admin'
+
+type Props = {
+  uid: string
+}
+
+// 登録済みのユーザーの場合はユーザーぺージへリダイレクトする
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const cookies = nookies.get(ctx)
+
+  const token = await auth.verifyIdToken(cookies.token)
+  const user = await fetchUser(token.uid)
+
+  if (user.isFinishedRegisterUserInfo) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: `/users/${user.name}`,
+      },
+    }
+  } else {
+    return {
+      props: {
+        uid: token.uid,
+      },
+    }
+  }
+}
 
 export default function Onboarding() {
   const router = useRouter()
   const initialRef = useRef()
   const { currentUser } = useCurrentUser()
-  const setUser = useSetRecoilState(userState) // TODO: 使ってない
   const [userName, setUserName] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false)
@@ -30,12 +58,6 @@ export default function Onboarding() {
   // Validation
   const isUserNameNotValid = userName.length >= 100
   const isInputError = isUserNameNotValid || isAlreadyRegistered
-
-  useEffect(() => {
-    if (currentUser && currentUser.isFinishedRegisterUserInfo) {
-      router.push(`/users/${currentUser.name}`)
-    }
-  }, [currentUser])
 
   async function onSubmitItem() {
     const userNamesCollection = collection(firestore, 'userNames')
@@ -56,13 +78,7 @@ export default function Onboarding() {
     setIsSending(true)
     await runTransaction(firestore, async (transaction) => {
       // Set user data
-      transaction.set(userRef, {
-        name: userName,
-        isFinishedRegisterUserInfo: true,
-        profileImageURL: currentUser.profileImageURL,
-        articlesCount: 0,
-        uid: currentUser.uid,
-      })
+      transaction.set(userRef, user)
       transaction.set(userNamesRef, {
         uid: currentUser.uid,
       })
@@ -76,7 +92,7 @@ export default function Onboarding() {
 
   function onChangeUserName(name: string) {
     setUserName(name)
-    setIsAlreadyRegistered(false) // TODO: ここでfalse入れる必要あるの？
+    setIsAlreadyRegistered(false) // 重複表示がある場合にそれをリセット
   }
 
   return (
@@ -104,7 +120,9 @@ export default function Onboarding() {
                 <FormErrorMessage>This name is already registered.</FormErrorMessage>
               )}
             </FormControl>
-            <NormalButton title='OK' isLoading={isSending} onClick={onSubmitItem} />
+            <NormalButton title='OK' isLoading={isSending} onClick={onSubmitItem}>
+              OK
+            </NormalButton>
           </VStack>
         </Box>
       )}
