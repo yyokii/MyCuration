@@ -12,6 +12,7 @@ import { User } from '../types/user'
 import { auth } from '../lib/firebase'
 import { checkIfRegistered, fetchUser } from '../lib/firebase-auth'
 import { useRouter } from 'next/router'
+import nookies from 'nookies'
 
 // TODO: 将来必要に応じて変更する
 dayjs.locale('ja')
@@ -45,10 +46,13 @@ function AppInit() {
           }
         }
 
+        const token = await firebaseUser.getIdToken()
         setUser(user)
+        nookies.set(undefined, 'token', token, { path: '/' })
       } else {
         console.log('User is not signed in')
         setUser(null)
+        nookies.set(undefined, 'token', '', { path: '/' })
       }
     })
 
