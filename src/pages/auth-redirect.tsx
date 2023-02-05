@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import * as firebaseAuth from 'firebase/auth'
 import Layout from '../components/Layout'
 import { auth } from '../lib/firebase'
+import { Center, Spinner } from '@chakra-ui/react'
 
 const redirectableWhiteList = ['', 'onboarding']
 
@@ -47,11 +48,9 @@ const AuthRedirectPage: NextPage = () => {
 
   return (
     <Layout>
-      <div className='text-center'>
-        <div className='row justify-content-center'>
-          <h1>Loading</h1>
-        </div>
-      </div>
+      <Center h={'200px'}>
+        <Spinner size='xl' />
+      </Center>
     </Layout>
   )
 }
