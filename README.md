@@ -1,3 +1,31 @@
+# MyCuration
+
+This is a Web App that allows you to write comments on URLs and their contents.
+
+<img src="https://user-images.githubusercontent.com/20992687/217567009-facf33e3-cae3-4451-a405-f76cc390cd8d.png" width="700">
+
+The main functions are as follows
+
+* Google Login
+* Create/update/delete posts
+* Tagging of posts
+* Filtering of posts
+
+## Tech stack
+
+### Client
+* Next.js
+* Chakra UI
+* Recoil
+
+### Server
+* Vercel
+* Firebase Auth
+  * If we use `signInWithRedirect`, additional changes are required because it does not behave properly in browsers other than chrome.[Best practices for using signInWithRedirect on browsers that block third-party storage access  |  Firebase](https://firebase.google.com/docs/auth/web/redirect-best-practices)
+[Firebase Auth `getRedirectResult` is always null when I run the app in Safari - Stack Overflow](https://stackoverflow.com/a/75349931/9015472)
+* Firestore
+* Cloud Functions
+
 ## Set up
 
 Start firebase emulator
