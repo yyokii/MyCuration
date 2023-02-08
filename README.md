@@ -1,6 +1,6 @@
 # MyCuration
 
-This is a Web App that allows you to write comments on URLs and their contents.
+This is a Web App that saves URLs and comments.
 
 <img src="https://user-images.githubusercontent.com/20992687/217567009-facf33e3-cae3-4451-a405-f76cc390cd8d.png" width="700">
 
